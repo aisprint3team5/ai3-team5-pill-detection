@@ -1,1 +1,41 @@
-.idea
+# Python 관련
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 환경 설정
+.env
+.env.*
+
+# 개발환경 설정
+.vscode/
+.idea/
+
+# 데이터 파일
+data/raw/
+!data/raw/.gitkeep
+
+
+# 모델 체크포인트, weights
+*.pt
+*.pth
+*.ckpt
+*.h5
+
+# 로그
+!outputs/logs/.gitkeep
+*.log
+
+# Jupyter 노트북 체크포인트
+.ipynb_checkpoints
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 압축 파일
+*.zip
+*.tar
+*.tar.gz
+*.rar
