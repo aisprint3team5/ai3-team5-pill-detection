@@ -46,6 +46,31 @@ ai3-team5-pill-detection/
 ```
 cd yolo11.py
 python yolo11.py -- name exp1
+
+Ultralytics YOLOv11 Training Script
+
+options:
+  -h, --help            show this help message and exit
+  --weights WEIGHTS     pretrained weights or model .pt path (default: yolo11n.pt)
+  --data DATA           dataset yaml file (train/val paths, nc, names) (default: data.yaml)
+  --epochs EPOCHS       number of training epochs (default: 50)
+  --batch BATCH         batch size (default: 16)
+  --imgsz IMGSZ         input image size (HxW) (default: 640)
+  --optimizer {SGD,Adam,AdamW}
+                        optimizer type (default: SGD)
+  --lr0 LR0             initial learning rate (default: 0.01)
+  --lrf LRF             final LR ratio (cosine scheduler) (default: 0.01)
+  --momentum MOMENTUM   SGD momentum (only if optimizer=SGD) (default: 0.937)
+  --betas BETAS         Adam/AdamW betas as "beta1,beta2" (default: (0.9, 0.999))
+  --weight_decay WEIGHT_DECAY
+                        weight decay (L2) (default: 0.0005)
+  --warmup_epochs WARMUP_EPOCHS
+                        number of warmup epochs (default: 3)
+  --augment             enable augmentations (default: True)
+  --no-augment          disable augmentations (default: True)
+  --project PROJECT     save results to project/name (default: runs/train)
+  --name NAME           experiment name (subfolder) (default: exp)
+usage: yolo11.py [-h] [--weights WEIGHTS] [--data DATA] [--epochs EPOCHS] [--batch BATCH] [--imgsz IMGSZ] [--optimizer {SGD,Adam,AdamW}] [--lr0 LR0] [--lrf LRF] [--momentum MOMENTUM] [--betas BETAS] [--weight_decay WEIGHT_DECAY] [--warmup_epochs WARMUP_EPOCHS] [--augment | --no-augment] [--project PROJECT] --name NAME
 ```
 
 ## Yolo11 라벨 형식
