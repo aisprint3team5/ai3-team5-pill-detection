@@ -62,8 +62,7 @@ ai3-team5-pill-detection/
 
 ## Yolo11 실행방법
 ```
-cd yolo11.py
-python yolo11.py -- name exp1
+python models/yolo11/main.py -- name exp1
 
 Ultralytics YOLOv11 Training Script
 
