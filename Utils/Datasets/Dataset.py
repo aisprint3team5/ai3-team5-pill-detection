@@ -3,7 +3,7 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
-class SampleDataset(Dataset):
+class PillYoloDataset(Dataset):
     def __init__(self, image_dir, label_dir, class_to_idx, S=7, B=2, C=20, transform=None):
         self.image_dir = image_dir
         self.label_dir = label_dir

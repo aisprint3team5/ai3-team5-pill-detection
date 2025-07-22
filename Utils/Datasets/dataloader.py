@@ -28,7 +28,7 @@ TRAIN_ANN_DIR = ROOT_DIR / "data/raw/train_annotations"
 YOLO_IMG_DIR = "YOLO_dataset/images"
 YOLO_LABEL_DIR = "YOLO_dataset/labels"
 
-def convert_to_yolo(dataset):
+def convert_to_yolo(dataset, output_img_dir, output_label_dir):
 
     os.makedirs(YOLO_IMG_DIR, exist_ok=True)
     os.makedirs(YOLO_LABEL_DIR, exist_ok=True)
@@ -37,7 +37,7 @@ def convert_to_yolo(dataset):
     all_class_names = set()
     for data in dataset:
         for category in data["categories"]:
-            all_class_names.add(category["category_id"]) # category_name
+            all_class_names.add(category["category_name"]) # category_name
     class_name_to_id = {name: idx for idx, name in enumerate(sorted(all_class_names))}
 
     # Convert each image & label
@@ -55,7 +55,7 @@ def convert_to_yolo(dataset):
         label_lines = []
 
         for category in data["categories"]:
-            class_name = category["category_id"]
+            class_name = category["category_name"]
             class_id = class_name_to_id[class_name]
 
             for annotation in category["annotations"]:
@@ -349,14 +349,14 @@ def load_training_data(image_dir, annotation_root):
 
 
 def is_valid_annotation(annotation):
-    annotations = annotation.get("annotations")
-    if isinstance(annotations, dict):
+    if isinstance(annotation, dict):
         print('xx')
-        return  "bbox" in annotations and isinstance(annotations["bbox"], list) and len(annotations["bbox"]) == 4
-    elif isinstance(annotations, list):
+        return  "bbox" in annotation and isinstance(annotation["bbox"], list) and len(annotation["bbox"]) == 4
+    elif isinstance(annotation, list):
+        print('yy')
         return any(
             "bbox" in ann and isinstance(ann["bbox"], list) and len(ann["bbox"]) == 4
-            for ann in annotations
+            for ann in annotation
         )
     return False
 
@@ -390,49 +390,3 @@ def explore_dataset(data, limit=5, draw_bbox=True):
         count += 1
         if count >= limit:
             break
-#
-# class PillDataset(Dataset):
-#     def __init__(self, image_dir, annotation_dir, transform=None):
-#         self.image_dir = image_dir
-#         self.annotation_dir = annotation_dir
-#         self.transform = transform
-#         self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.png')]
-#
-#     def __len__(self):
-#         return len(self.image_files)
-#
-#     def __getitem__(self, idx):
-#         img_name = self.image_files[idx]
-#         img_path = os.path.join(self.image_dir, img_name)
-#         ann_path = os.path.join(self.annotation_dir, img_name.replace('.png', '.json'))
-#
-#         image = Image.open(img_path).convert("RGB")
-#
-#         # Load annotation
-#         with open(ann_path, 'r') as f:
-#             annotation = json.load(f)
-#         label = annotation.get("label", "unknown")
-#         bbox = annotation.get("bbox", None)  # Optional: [x, y, w, h]
-#
-#         # Apply transforms
-#         if self.transform:
-#             image = self.transform(image)
-#
-#         sample = {
-#             "image": image,
-#             "label": label,
-#             "bbox": bbox,
-#             "image_path": img_path
-#         }
-#
-#         return sample
-#
-#
-# def encode_labels(dataset):
-#     labels = [sample["label"] for sample in dataset]
-#     encoder = LabelEncoder()
-#     encoder.fit(labels)
-#     return encoder
-
-
-
