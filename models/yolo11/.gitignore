@@ -1,7 +1,3 @@
 coco/
 output/
 runs/
-source/train/labels.cache
-source/train/images/
-source/val/labels.cache
-source/val/images/

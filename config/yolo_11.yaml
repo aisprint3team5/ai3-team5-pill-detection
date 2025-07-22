@@ -1,4 +1,4 @@
-# defaults.yaml
+# config.yaml
 
 # 모델·데이터
 weights:       "yolo11n.pt"
@@ -20,5 +20,5 @@ betas:         [0.9,0.999] # Adam/AdamW 전용
 weight_decay:  0.0005
 warmup_epochs: 3
 augment:       true      # or false
-project:       "runs/train"
+project:       "outputs/logs/yolo11"
 name:          "exp"
