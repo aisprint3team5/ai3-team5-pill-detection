@@ -46,6 +46,7 @@ ai3-team5-pill-detection/
 ├── scripts/ # 실행 스크립트    
 │
 ├── utils/ # 공용 유틸 함수    
+│  ├── font/  # 공통 서체
 │  ├── preprocessing.py    
 │  ├── augmentation.py    
 │  └── evaluation.py    
