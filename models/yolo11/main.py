@@ -6,7 +6,7 @@ import yaml                                  # pip install pyyaml
 from ultralytics import YOLO
 
 # ─── 1) 외부 YAML 읽어 DEFAULTS 생성 ────────────────────────────
-with open("models/yolo11/config.yaml", "r", encoding="utf-8") as f:
+with open("config/yolo_11.yaml", "r", encoding="utf-8") as f:
     DEFAULTS = yaml.safe_load(f)
 
 # ─── 2) argparse 인자 설정 정보 정의 ───────────────────────────
