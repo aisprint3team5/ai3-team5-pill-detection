@@ -1,0 +1,24 @@
+# defaults.yaml
+
+# 모델·데이터
+weights:       "yolo11n.pt"
+data:          "data.yaml"
+
+# 학습 스케줄
+epochs:        50
+batch:         16
+imgsz:         640
+
+# Optimizer 설정
+optimizer:     "SGD"      # ["SGD","Adam","AdamW"]
+lr0:           0.01
+lrf:           0.01
+momentum:      0.937     # SGD 전용
+betas:         [0.9,0.999] # Adam/AdamW 전용
+
+# 기타
+weight_decay:  0.0005
+warmup_epochs: 3
+augment:       true      # or false
+project:       "runs/train"
+name:          "exp"
