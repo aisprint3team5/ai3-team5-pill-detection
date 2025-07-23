@@ -39,3 +39,18 @@ class YOLOV8Detector():
         
         return results
     
+    def test(self, source_path: str):
+        print(f"[DEV - INFO] Running test on: {source_path}")
+        
+        results = self.model.predict(
+            source=source_path,
+            conf=self.conf_threshold,
+            save=True,           
+            save_txt=True,       
+            save_conf=True,      
+            project="runs/detect/test",
+            name=f"test_results_{self.run_time}",  # 원하는 이름 지정
+            exist_ok=True
+        )
+        
+        return results
