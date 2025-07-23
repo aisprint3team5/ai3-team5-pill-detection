@@ -1,0 +1,6 @@
+# 1) 환경 변수로 토큰 설정 (안전)
+import os
+os.environ['GITHUB_TOKEN'] = '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'
+
+# 2) 토큰을 이용해 브랜치 전체 clone
+!git clone https://$GITHUB_TOKEN@github.com/aisprint3team5/ai3-team5-pill-detection.git
