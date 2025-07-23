@@ -88,8 +88,8 @@ val_data = dataset[:val_size]
 train_data = dataset[val_size:]
 # #
 #
-convert_to_yolo(train_data, CONFIG_TRAIN, CONFIG_TRAIN_LABEL)
-convert_to_yolo(val_data, CONFIG_VAL, CONFIG_VAL_LABEL)
+convert_to_yolo(train_data, TRAIN_IMAGE_DIR, CONFIG_TRAIN, CONFIG_TRAIN_LABEL)
+convert_to_yolo(val_data, TRAIN_IMAGE_DIR, CONFIG_VAL, CONFIG_VAL_LABEL)
 # # #
 # # # # 실제 파일 이동
 split_yolo_dataset( CONFIG_INPUT_IMAGE_DIR,

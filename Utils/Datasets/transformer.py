@@ -1,6 +1,6 @@
 from torchvision.transforms import ToTensor
 from ..preprocessing import *
-
+import numpy as np
 class PillImageTransform:
     def __init__(self, resize=(640, 640)):
         self.resize = resize
