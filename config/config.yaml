@@ -1,13 +1,14 @@
 paths:
   input_image_dir: YOLO_dataset/images
   input_label_dir: YOLO_dataset/labels
-  yolo_data_dir: Data/yolo_split
-  yolo_train_dir: Data/yolo_split/train/images
-  yolo_train_label: Data/yolo_split/train/labels
-  yolo_val_dir: Data/yolo_split/val/images
-  yolo_val_label: Data/yolo_split/val/labels
-  original_dataset: Data/raw
-  data_dir: Data
+  yolo_data_dir: data/yolo_split
+  yolo_train_dir: data/yolo_split/train/images
+  yolo_train_label: data/yolo_split/train/labels
+  yolo_val_dir: data/yolo_split/val/images
+  yolo_val_label: data/yolo_split/val/labels
+  
+  original_dataset: data/raw
+  data_dir: data
   train_image_dir: Data/raw/train_images
   train_annot_dir: Data/raw/train_annotations
   data_yaml_path: config/data.yaml
