@@ -15,3 +15,11 @@ image_size: 416
 batch_size: 16
 test_image_dir: "../data/raw/test_images" # 테스트할 이미지 경로
 run_save_path: "runs/"
+
+# TODO: train/val split 디렉토리 설정
+# train / labels 디렉토리 설정
+train_images_dir: "YOLO_dataset/images" # train image 파일 경로
+train_labels_dir: "YOLO_dataset/labels" # label image 파일 경로
+
+# tran/val split이 저장될 경로
+output_dir: "split_dataset/" # train/val split 디렉토리는 여기에 생김
