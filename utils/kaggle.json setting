@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+
+"""
+
+print("kaggle 개인 토큰 파일 (kaggle. json)을 업로드 하셨나요?")
+
+import os
+import shutil
+
+answer = input("kaggle 개인 토큰 파일 (kaggle.json)을 구글코랩에 업로드 하셨나요? (Y/N): ")
+if answer.lower() == 'y':
+    src_path = '/content/kaggle.json'
+    dst_dir = '/root/.config/kaggle'
+    os.makedirs(dst_dir, exist_ok=True)
+    shutil.copy(src_path, os.path.join(dst_dir, 'kaggle.json'))
+    print(f"kaggle.json 파일이 {dst_dir}로 복사되었습니다.")
+else:
+    print("먼저 kaggle.json 파일을 업로드해주세요.")
