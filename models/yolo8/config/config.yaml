@@ -9,7 +9,7 @@ iou_threshold: 0.4
 # 학습 설정
 train_data_yaml: "../../config/yolo_8.yaml"
 
-epochs: 50
+epochs: 5
 patience: 5
 image_size: 416
 batch_size: 16

@@ -19,9 +19,11 @@ def to_submission_format(model_results, csv_save_path="runs/predictions/test_pre
             conf = float(box.conf[0])                # confidence score
             xyxy = box.xyxy[0].tolist()              # [x1, y1, x2, y2]
 
-            x1, y1, x2, y2 = xyxy
-            bbox_w = x2 - x1
-            bbox_h = y2 - y1
+            cx, cy, w, h = box.xywh[0].tolist()
+            x1 = cx - w / 2
+            y1 = cy - h / 2
+            bbox_w = w
+            bbox_h = h
 
             data.append({
                 'annotation_id': annotation_id,
