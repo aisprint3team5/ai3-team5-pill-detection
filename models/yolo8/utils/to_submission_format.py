@@ -1,28 +1,45 @@
 import os
 import csv
+import pandas as pd
 
-def to_submission_format(model_result, submission_file):
-    with open(submission_file, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["annotation_id", "image_id", "category_id", "bbox_x", "bbox_y", "bbox_w", "bbox_h", "score"])
+def to_submission_format(model_results, csv_save_path="runs/predictions/test_predictions.csv"):
+    # 결과 수집용 리스트
+    data = []
+    annotation_id = 1  # annotation_id는 1부터 시작
 
-        for result in model_result:
-            image_path = result.path  # 원본 이미지 경로
-            image_id = os.path.splitext(os.path.basename(image_path))[0]  # 숫자만 추출할 수도 있음
+    # 이미지별로 결과 저장
+    for result in model_results:
+        image_path = result.path
+        image_name = os.path.basename(image_path)
+        image_id = int(os.path.splitext(image_name)[0])  # '123.png' → 123 (숫자만 추출)
 
-            for box in result.boxes:
-                x1, y1, x2, y2 = box.xyxy[0].tolist()
-                w, h = x2 - x1, y2 - y1
-                cls = int(box.cls[0].item())  # class index
-                conf = float(box.conf[0].item())  # confidence score
+        boxes = result.boxes
+        for box in boxes:
+            cls_id = int(box.cls[0])                 # category_id
+            conf = float(box.conf[0])                # confidence score
+            xyxy = box.xyxy[0].tolist()              # [x1, y1, x2, y2]
 
-                writer.writerow([
-                    annotation_id,
-                    image_id,
-                    cls,
-                    int(x1), int(y1), int(w), int(h),
-                    round(conf, 4)
-                ])
-                annotation_id += 1
+            x1, y1, x2, y2 = xyxy
+            bbox_w = x2 - x1
+            bbox_h = y2 - y1
 
-    print(f"[INFO] 제출용 CSV 생성 완료 → {submission_file}")
+            data.append({
+                'annotation_id': annotation_id,
+                'image_id': image_id,
+                'category_id': cls_id,
+                'bbox_x': int(x1),
+                'bbox_y': int(y1),
+                'bbox_w': int(bbox_w),
+                'bbox_h': int(bbox_h),
+                'score': round(conf, 4)
+            })
+            annotation_id += 1
+
+    # 디렉토리가 없으면 생성
+    os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
+
+    # DataFrame으로 저장
+    df = pd.DataFrame(data)
+    df.to_csv(csv_save_path, index=False)
+
+    print(f"제출 포맷으로 결과 저장 완료: {csv_save_path}")

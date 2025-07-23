@@ -60,3 +60,5 @@ if __name__ == "__main__":
         
     # 테스트 결과 저장
     test_result = detector.test(source_path=test_image_dir)
+
+    to_submission_format(test_result)
