@@ -30,6 +30,8 @@ if __name__ == "__main__":
     #     output_dir=config["output_dir"]
     # )
 
+    print(f'asdasdasd: {train_data_yaml}')
+
     # YOLOv8 Detector 객체 생성
     detector = YOLOV8Detector(
         model_path=model_path,
