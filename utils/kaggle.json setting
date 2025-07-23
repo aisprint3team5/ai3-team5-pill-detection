@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-"""
 
 print("kaggle 개인 토큰 파일 (kaggle. json)을 업로드 하셨나요?")
 
