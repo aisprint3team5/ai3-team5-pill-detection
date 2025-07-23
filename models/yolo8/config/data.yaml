@@ -73,6 +73,6 @@ names:
 - 펠루비정(펠루비프로펜)
 - 플라빅스정 75mg
 nc: 73
-train: ../data/train/images # train image 파일 경로
-val: ../data/val/images # val image 파일 경로
+train: ../split_dataset/train/images # train image 파일 경로
+val: ../split_dataset/val/images # val image 파일 경로
 test: ../data/raw/test_images # test image 파일 경로
