@@ -2,7 +2,7 @@ import torch
 
 
 # ────────────────────────────────────────────────────────────────
-# 2. Yolo1 손실 함수 (채널 매핑: 0–4 box1,4 conf1,5–9 box2,9 conf2,10–29 class)
+# Yolo1 손실 함수 (채널 매핑: 0–4 box1,4 conf1,5–9 box2,9 conf2,10–29 class)
 # ────────────────────────────────────────────────────────────────
 def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
     def iou_xyxy(boxes1, boxes2):
