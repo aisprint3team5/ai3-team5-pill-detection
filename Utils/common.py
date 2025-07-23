@@ -7,7 +7,7 @@ import os
 import random
 import shutil
 from typing import Tuple
-
+import sqlite3
 
 def split_yolo_dataset(
         images_dir: str,
@@ -59,7 +59,110 @@ def split_yolo_dataset(
 
     print(f"[INFO] Split complete: {train_count} training, {val_count_actual} validation samples.")
 
+def load_class_mapping(class_file):
+    class_name_to_idx = {}
+    idx_to_class_name = {}
+    with open(class_file) as f:
+        for line in f:
+            idx, name = line.strip().split(": ")
+            class_name_to_idx[name] = int(idx)
+            idx_to_class_name[int(idx)] = name
+    return class_name_to_idx, idx_to_class_name
 
+def extract_category_ids_from_filename(filename):
+    # Assumes filename like: K-003483-016232-027777-031885_0_2_0_2_70_000_200.txt
+    base = filename.split("_")[0]
+    ids = base.split("-")[1:]  # Skip 'K'
+    return ids
+
+def get_label_ids_from_file(filepath):
+    label_ids = set()
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            for line in f:
+                parts = line.strip().split()
+                if parts:
+                    label_ids.add(int(parts[0]))
+    return label_ids
+
+def get_category_name_from_db(category_id, conn):
+    cursor = conn.cursor()
+    category_id = int(category_id) - 1  # → 3482
+
+    cursor.execute("SELECT name FROM pill_metadata WHERE category_id = ?", (category_id,))
+    row = cursor.fetchone()
+    return row[0] if row else None
+
+
+def merge_labels_with_db(
+    existed_label_dir,
+    new_label_dir,
+    output_label_dir,
+    class_name_to_idx,
+    db_path
+):
+    os.makedirs(output_label_dir, exist_ok=True)
+
+    conn = sqlite3.connect(db_path)
+
+    for filename in os.listdir(new_label_dir):
+        if not filename.endswith(".txt"):
+            continue
+
+        existed_file = os.path.join(existed_label_dir, filename)
+        new_file = os.path.join(new_label_dir, filename)
+        output_file = os.path.join(output_label_dir, filename)
+
+        if not os.path.exists(existed_file):
+            continue
+
+        existing_label_ids = get_label_ids_from_file(existed_file)
+
+        # Step 1: parse filename → category_ids
+        category_ids = extract_category_ids_from_filename(filename)
+
+        # Step 2: Use DB to get category_name → label_id
+        all_label_ids = []
+        for cid in category_ids:
+            cname = get_category_name_from_db(cid, conn)
+            if not cname:
+                print(f"⚠️ Warning: category_id {cid} not found in DB")
+                continue
+            label_id = class_name_to_idx.get(cname)
+            if label_id is not None:
+                all_label_ids.append(label_id)
+            else:
+                print(f"⚠️ Warning: category_name '{cname}' not in class_names.txt")
+
+        # Step 3: find missing
+        missing_label_ids = set(all_label_ids) - existing_label_ids
+        if not missing_label_ids:
+            continue
+
+        # Step 4: Load bbox from new_label
+        new_bbox_lines = []
+        with open(new_file, "r", encoding="utf-8") as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) != 5:
+                    continue
+                _, cx, cy, w, h = parts
+                for mid in missing_label_ids:
+                    new_bbox_lines.append(f"{mid} {cx} {cy} {w} {h}")
+
+        # Step 5: Merge and write to output
+        with open(existed_file, "r", encoding="utf-8") as f:
+            existing_lines = f.readlines()
+
+        with open(output_file, "w", encoding="utf-8") as f:
+            for line in existing_lines:
+                f.write(line.strip() + "\n")
+            for line in new_bbox_lines:
+                f.write(line + "\n")
+
+        print(f"✅ Merged: {filename}")
+
+    conn.close()
 
 def move_files(split_data, split_name,INPUT_IMAGE_DIR,INPUT_LABEL_DIR,OUTPUT_DIR):
     for item in split_data:
