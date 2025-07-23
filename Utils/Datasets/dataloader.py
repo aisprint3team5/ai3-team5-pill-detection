@@ -5,12 +5,12 @@ from PIL import Image, ImageDraw
 from collections import defaultdict
 #from sklearn.preprocessing import LabelEncoder
 import pprint
-
+import sqlite3
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import Counter
-
+import script.db.insert_pills as db
 import zipfile
 import shutil
 from pathlib import Path
@@ -28,10 +28,18 @@ TRAIN_ANN_DIR = ROOT_DIR / "data/raw/train_annotations"
 YOLO_IMG_DIR = "YOLO_dataset/images"
 YOLO_LABEL_DIR = "YOLO_dataset/labels"
 
-def convert_to_yolo(dataset, output_img_dir, output_label_dir):
+def convert_to_yolo(dataset, image_root_dir, output_img_dir, output_label_dir):
+    """
+       Converts a dataset to YOLO format.
 
-    os.makedirs(YOLO_IMG_DIR, exist_ok=True)
-    os.makedirs(YOLO_LABEL_DIR, exist_ok=True)
+       Args:
+           dataset (list): List of parsed annotation dictionaries.
+           image_root_dir (str or Path): Directory where original images are stored.
+           output_img_dir (str or Path): Directory to save YOLO images.
+           output_label_dir (str or Path): Directory to save YOLO-format label files.
+       """
+    os.makedirs(output_img_dir, exist_ok=True)
+    os.makedirs(output_label_dir, exist_ok=True)
 
     # Build class_id map
     all_class_names = set()
@@ -43,7 +51,7 @@ def convert_to_yolo(dataset, output_img_dir, output_label_dir):
     # Convert each image & label
     for data in dataset:
         image_filename = data["image_file"]
-        image_path = os.path.join(TRAIN_IMG_DIR, image_filename)
+        image_path = os.path.join(image_root_dir, image_filename)
 
         try:
             image = Image.open(image_path).convert("RGB")
@@ -71,12 +79,12 @@ def convert_to_yolo(dataset, output_img_dir, output_label_dir):
                 label_lines.append(line)
 
         # Save image
-        output_img_path = os.path.join(YOLO_IMG_DIR, image_filename)
+        output_img_path = os.path.join(output_img_dir, image_filename)
         image.save(output_img_path)
 
         #  label
         txt_filename = os.path.splitext(image_filename)[0] + ".txt"
-        label_path = os.path.join(YOLO_LABEL_DIR, txt_filename)
+        label_path = os.path.join(output_label_dir, txt_filename)
         with open(label_path, "w") as f:
             f.write("\n".join(label_lines))
 
@@ -88,7 +96,7 @@ def convert_to_yolo(dataset, output_img_dir, output_label_dir):
             f.write(f"{idx}: {name}\n")
 
 
-def convert_to_json():
+def convert_to_json(db_path):
 
    # os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -100,6 +108,7 @@ def convert_to_json():
     not_found = 0
     # Map image file name to JSON data
     imgfile_to_jsons = defaultdict(list)
+    conn  = sqlite3.connect(db_path)
 
     for root, _, files in os.walk(TRAIN_ANN_DIR):
         for file in files:
@@ -147,7 +156,7 @@ def convert_to_json():
             category_info = data["categories"][0]
             category_id = category_info["id"]
             category_name = category_info["name"]
-
+            db.insert_category_to_db(conn, category_id, category_name)
             if category_id not in category_map:
                 category_map[category_id] = {
                     "category_id": category_id,
@@ -214,6 +223,7 @@ def convert_to_json():
     #     plt.close(fig)  # Close the figure to free memory
     #
     #     print(f"[Saved] {output_path}")
+    conn.close()
     return dataset
 
 def download_data():
@@ -234,7 +244,6 @@ def download_data():
 
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    # Download dataset
     print("Downloading dataset from Kaggle")
     api.competition_download_files(
         competition=COMPETITION,
