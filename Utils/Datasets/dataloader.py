@@ -1,18 +1,12 @@
 import os
 import json
-import pandas as pd
 from PIL import Image, ImageDraw
 from collections import defaultdict
 #from sklearn.preprocessing import LabelEncoder
-import pprint
 import sqlite3
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from collections import Counter
-import script.db.insert_pills as db
+#import script.db.insert_pills as db
 import zipfile
-import shutil
 from pathlib import Path
 from kaggle.api.kaggle_api_extended import KaggleApi
 
@@ -108,7 +102,7 @@ def convert_to_json(db_path):
     not_found = 0
     # Map image file name to JSON data
     imgfile_to_jsons = defaultdict(list)
-    conn  = sqlite3.connect(db_path)
+    #conn  = sqlite3.connect(db_path)
 
     for root, _, files in os.walk(TRAIN_ANN_DIR):
         for file in files:
@@ -156,7 +150,7 @@ def convert_to_json(db_path):
             category_info = data["categories"][0]
             category_id = category_info["id"]
             category_name = category_info["name"]
-            db.insert_category_to_db(conn, category_id, category_name)
+            #db.insert_category_to_db(conn, category_id, category_name)
             if category_id not in category_map:
                 category_map[category_id] = {
                     "category_id": category_id,
