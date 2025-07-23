@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 
 import os
 #from script.db.create_schema import DB_PATH
-from utils.common import *
+from utils.common import extract_category_ids_from_filename
 
 import cv2
 import numpy as np
@@ -52,7 +52,7 @@ def show_img(image, contours):
 
 
 def resolve_label_ids_from_filename(filename, category_lookup, class_name_to_idx):
-    category_ids = common.extract_category_ids_from_filename(filename)
+    category_ids = extract_category_ids_from_filename(filename)
     label_ids = []
 
     for cid in category_ids:

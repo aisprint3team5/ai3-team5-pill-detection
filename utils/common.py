@@ -1,7 +1,13 @@
 import zipfile
 from pathlib import Path
 from kaggle.api.kaggle_api_extended import KaggleApi
+
 import os
+import random
+import shutil
+from typing import Tuple
+import sqlite3
+
 COMPETITION = "ai03-level1-project"
 
 def is_data_downloaded(data_dir):
@@ -45,15 +51,6 @@ def download_data(data_dir):
         zip_ref.extractall(data_dir)
 
     print(f"{data_dir}")
-
-
-# utils/common.py
-
-import os
-import random
-import shutil
-from typing import Tuple
-import sqlite3
 
 def split_yolo_dataset(
         images_dir: str,
@@ -116,7 +113,7 @@ def load_class_mapping(class_file):
     return class_name_to_idx, idx_to_class_name
 
 def extract_category_ids_from_filename(filename):
-    # Assumes filename like: K-003483-016232-027777-031885_0_2_0_2_70_000_200.txt
+    #  K-003483-016232-027777-031885_0_2_0_2_70_000_200.txt
     base = filename.split("_")[0]
     ids = base.split("-")[1:]  # Skip 'K'
     return ids

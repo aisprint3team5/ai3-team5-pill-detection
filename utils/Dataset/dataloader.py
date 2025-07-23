@@ -11,18 +11,15 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
-IMAGE_DIR = ROOT_DIR / "YOLO_dataset/images"
-LABEL_DIR = ROOT_DIR / "YOLO_dataset/labels"
+
 
 OUTPUT_DIR = ROOT_DIR/"outputs/with_bounding_boxes"
 
 TRAIN_IMG_DIR = ROOT_DIR / "data/raw/train_images"
 TRAIN_ANN_DIR = ROOT_DIR / "data/raw/train_annotations"
 CLASS_FILE = ROOT_DIR / "data/class_names.txt"
-YOLO_IMG_DIR = "YOLO_dataset/images"
-YOLO_LABEL_DIR = "YOLO_dataset/labels"
 
-def convert_to_yolo(dataset, image_root_dir, output_img_dir, output_label_dir):
+def convert_to_yolo(dataset, class_name_to_id, image_root_dir, output_img_dir, output_label_dir):
     """
        Converts a dataset to YOLO format.
 
@@ -36,11 +33,11 @@ def convert_to_yolo(dataset, image_root_dir, output_img_dir, output_label_dir):
     # os.makedirs(output_label_dir, exist_ok=True)
 
     # # Build class_id map
-    all_class_names = set()
-    for data in dataset:
-        for category in data["categories"]:
-            all_class_names.add(category["category_name"]) # category_name
-    class_name_to_id = {name: idx for idx, name in enumerate(sorted(all_class_names))}
+    # all_class_names = set()
+    # for data in dataset:
+    #     for category in data["categories"]:
+    #         all_class_names.add(category["category_name"]) # category_name
+    # class_name_to_id = {name: idx for idx, name in enumerate(sorted(all_class_names))}
 
     # Convert each image & label
     for data in dataset:
@@ -72,7 +69,7 @@ def convert_to_yolo(dataset, image_root_dir, output_img_dir, output_label_dir):
                 line = f"{class_id} {x_center:.6f} {y_center:.6f} {w_norm:.6f} {h_norm:.6f}"
                 label_lines.append(line)
 
-        # Save image
+        # Save 
         output_img_path = os.path.join(output_img_dir, image_filename)
         image.save(output_img_path)
 
@@ -105,7 +102,7 @@ def convert_to_json(db_path):
     not_found = 0
     # Map image file name to JSON data
     imgfile_to_jsons = defaultdict(list)
-    conn  = sqlite3.connect(db_path)
+    #conn  = sqlite3.connect(db_path)
 
     for root, _, files in os.walk(TRAIN_ANN_DIR):
         for file in files:
@@ -220,7 +217,7 @@ def convert_to_json(db_path):
     #     plt.close(fig)  # Close the figure to free memory
     #
     #     print(f"[Saved] {output_path}")
-    conn.close()
+    #conn.close()
     return dataset
 
 def get_all_annotation_files(root_folder):
