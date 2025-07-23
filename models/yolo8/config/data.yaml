@@ -75,4 +75,3 @@ names:
 nc: 73
 train: ../split_dataset/train/images # train image 파일 경로
 val: ../split_dataset/val/images # val image 파일 경로
-test: ../data/raw/test_images # test image 파일 경로
