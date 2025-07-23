@@ -1,0 +1,41 @@
+# YOLO 탐지 로직
+from ultralytics import YOLO
+import cv2
+import numpy as np
+import torch
+import datetime
+
+class YOLOV8Detector():
+    def __init__(self, model_path: str, conf_threshold: float):
+        self.model = YOLO(model_path)
+        self.conf_threshold = conf_threshold
+        
+        print(f"[DEV - INFO] Loaded model: {model_path}")
+        print(f"[DEV - INFO] Classes: {self.model.names}")
+    
+    def train(self, data_yaml_path: str, epochs: int = 10, patience: int = 5, imgsz: int = 416, batch_size: int = 16):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print(f"[DEV - INFO] Training on {data_yaml_path}, device: {device}")
+        run_name = f"train_results_{datetime.datetime.now().strftime('%y%m%d_%H-%M-%S')}"
+        
+        self.model.train(
+            data=data_yaml_path,
+            epochs=epochs,
+            patience=patience,
+            imgsz=imgsz,
+            batch=batch_size,
+            project="runs/detect/train",
+            name=run_name,
+            device=device,
+            exist_ok=True
+        )
+        
+        print("[DEV - INFO] Training finished.")
+    
+    def predict(self, source_path: str, save: bool = True):
+        print(f"[DEV - INFO] Running prediction on: {source_path}")
+        
+        results = self.model(source=source_path, save=save)
+        
+        return results
+    
