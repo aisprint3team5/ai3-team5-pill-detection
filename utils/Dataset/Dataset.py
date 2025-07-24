@@ -17,8 +17,11 @@ class PillYoloDataset(Dataset):
     def __len__(self):
         return len(self.image_files)
 
+
+    
     def __getitem__(self, idx):
         # Load image
+        
         image_filename = self.image_files[idx]
         image_path = os.path.join(self.image_dir, image_filename)
         image = Image.open(image_path).convert("RGB")
@@ -35,7 +38,8 @@ class PillYoloDataset(Dataset):
 
         boxes = torch.tensor(boxes) if boxes else torch.zeros((0, 5))  # Shape: (num_boxes, 5)
 
+        # Inside __getitem__()
         if self.transform:
-            image = self.transform(image)
+            image, boxes = self.transform(image, boxes)
 
         return image, boxes

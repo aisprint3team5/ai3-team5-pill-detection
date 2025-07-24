@@ -5,7 +5,7 @@ from collections import defaultdict
 #from sklearn.preprocessing import LabelEncoder
 import sqlite3
 import matplotlib.pyplot as plt
-#import script.db.insert_pills as db
+from script.db.database import insert_category_to_db
 
 from pathlib import Path
 
@@ -102,7 +102,7 @@ def convert_to_json(db_path):
     not_found = 0
     # Map image file name to JSON data
     imgfile_to_jsons = defaultdict(list)
-    #conn  = sqlite3.connect(db_path)
+    conn  = sqlite3.connect(db_path)
 
     for root, _, files in os.walk(TRAIN_ANN_DIR):
         for file in files:
@@ -150,7 +150,7 @@ def convert_to_json(db_path):
             category_info = data["categories"][0]
             category_id = category_info["id"]
             category_name = category_info["name"]
-          #  db.insert_category_to_db(conn, category_id, category_name)
+            insert_category_to_db(conn, category_id, category_name)
             if category_id not in category_map:
                 category_map[category_id] = {
                     "category_id": category_id,
@@ -179,45 +179,8 @@ def convert_to_json(db_path):
         record["categories"] = list(category_map.values())
         dataset.append(record)
     print(f'No annotation {not_found} images')
-    # Save to file
-    # with open("pill_dataset_structured.json", "w", encoding="utf-8") as f:
-    #     json.dump(dataset, f, ensure_ascii=False, indent=2)
 
-
-    # # Load image
-    # for idx, data in enumerate(dataset):
-    #     image_filename = data["image_file"]
-    #     image_path = os.path.join(TRAIN_IMG_DIR, image_filename)
-    #
-    #     # Load image
-    #     try:
-    #         image = Image.open(image_path).convert("RGB")
-    #     except FileNotFoundError:
-    #         print(f"[Warning] Image not found: {image_path}")
-    #         continue
-    #
-    # # Create figure and axis
-    #     fig, ax = plt.subplots(1, figsize=(10, 12))
-    #     ax.imshow(image)
-    #
-    #     # Draw bounding boxes
-    #     for category in data["categories"]:
-    #         name = category["category_name"]
-    #         for annotation in category["annotations"]:
-    #             x, y, w, h = annotation["bbox"]
-    #             rect = patches.Rectangle((x, y), w, h, linewidth=2,
-    #                                      edgecolor='red', facecolor='none')
-    #             ax.add_patch(rect)
-    #             ax.text(x, y - 5, name, fontsize=10, color='white',
-    #                     bbox=dict(facecolor='red', alpha=0.5))
-    #
-    #     ax.axis('off')
-    #     output_path = os.path.join(OUTPUT_DIR, f"annotated_{idx}_{image_filename}")
-    #     plt.savefig(output_path, bbox_inches='tight', pad_inches=0)
-    #     plt.close(fig)  # Close the figure to free memory
-    #
-    #     print(f"[Saved] {output_path}")
-    #conn.close()
+    conn.close()
     return dataset
 
 def get_all_annotation_files(root_folder):

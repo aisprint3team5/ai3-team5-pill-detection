@@ -1,9 +1,13 @@
 paths:
   yolo_data_dir: data/yolo_split
+  missing_anot_dir: data/yolo_split/missing_annotations
   yolo_train_dir: data/yolo_split/train/images
   yolo_train_label: data/yolo_split/train/labels
+  yolo_train_new_label: data/yolo_split/train/new_labels  ### @TO DO: Delete
   yolo_val_dir: data/yolo_split/val/images
   yolo_val_label: data/yolo_split/val/labels
+  yolo_val_new_label: data/yolo_split/val/new_labels  ### @TO DO: Delete
+
   original_dataset: data/raw
   data_dir: data
   train_image_dir: data/raw/train_images
@@ -12,3 +16,5 @@ paths:
   db_path: script/db/pill_metadata.db
   pickle_path: cache/parsed_dataset.pkl
   class_names_path: data/class_names.txt
+  mine_dir: data/yolo_split/train/mine
+  test_dir: data/yolo_split/train/testforme

@@ -5,30 +5,58 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import cv2
 from PIL import Image
+import torch
+
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+import numpy as np
 
 class AlbumentationTransform:
-    def __init__(self, resize=(640, 640), apply_clahe=True):
+    def __init__(self):
+        self.transform = A.Compose(
+            [
+                A.RandomBrightnessContrast(p=0.3),
+                A.HorizontalFlip(p=0.5),
+                A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=15, p=0.5),
+                A.Blur(p=0.2),
+                A.CLAHE(p=0.2),
+                A.Normalize(),
+                ToTensorV2(),
+            ],
+            bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels'])  # required
+        )
+
+    def __call__(self, image, boxes):
         """
         Args:
-            apply_clahe (bool): Whether to apply CLAHE for contrast enhancement.
+            image (PIL.Image or np.ndarray): Input image.
+            boxes (torch.Tensor or list): Bounding boxes in [class_id, x_center, y_center, width, height] format (YOLO).
+
+        Returns:
+            transformed image tensor, transformed boxes tensor
         """
-        transforms = []
+        # Convert PIL to np.ndarray if needed
+        if not isinstance(image, np.ndarray):
+            image = np.array(image)
 
-        if apply_clahe:
-            transforms.append(A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0))
+        # Prepare bbox list and class labels separately
+        if len(boxes) > 0:
+            bboxes = boxes[:, 1:].tolist()  # only bbox coords
+            class_labels = boxes[:, 0].tolist()
+        else:
+            bboxes = []
+            class_labels = []
 
-        transforms.append(A.Resize(height=resize[1], width=resize[0]))
-        transforms.append(A.ToFloat(max_value=255.0))
-        transforms.append(ToTensorV2())
+        transformed = self.transform(image=image, bboxes=bboxes, class_labels=class_labels)
 
-        self.transform = A.Compose(transforms)
+        # Recombine boxes: [class_id, x_center, y_center, w, h]
+        transformed_boxes = []
+        for cls_id, bbox in zip(class_labels, transformed['bboxes']):
+            transformed_boxes.append([cls_id] + list(bbox))
 
-    def __call__(self, img_pil: Image.Image):
+        transformed_boxes = torch.tensor(transformed_boxes, dtype=torch.float32)
 
-        img_np = np.array(img_pil)  #  PIL to RGB numpy
-        img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)  # Albumentations expects BGR
-        transformed = self.transform(image=img_bgr)
-        return transformed['image']
+        return transformed['image'], transformed_boxes
 
     
 # class PillImageTransform:

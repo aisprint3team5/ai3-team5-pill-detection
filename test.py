@@ -2,7 +2,8 @@ import os
 import torch
 
 from utils.Dataset.Dataset import PillYoloDataset
-from utils.Dataset.transformer import PillImageTransform
+#from utils.Dataset.transformer import PillImageTransform
+from script.db.database import create_db
 from utils.Dataset import dataset_parser
 from utils.Dataset.dataloader import *
 from config.config import CONFIG
@@ -14,8 +15,6 @@ import yaml
 DB_PATH = ROOT_DIR / "script/db/pill_metadata.db"
 
 # Config paths
-#CONFIG_INPUT_IMAGE_DIR = CONFIG["paths"]["input_image_dir"]
-#CONFIG_INPUT_LABEL_DIR = CONFIG["paths"]["input_label_dir"]
 
 CONFIG_TRAIN           = CONFIG["paths"]["yolo_train_dir"]
 CONFIG_TRAIN_LABEL     = CONFIG["paths"]["yolo_train_label"]
@@ -30,16 +29,10 @@ CONFIG_DATA_YAML_PATH = CONFIG["paths"]["data_yaml_path"]
 CONFIG_DB_PATH = CONFIG["paths"]["db_path"]
 CONFIG_CACHE_DIR = CONFIG["paths"]["pickle_path"]
 CONFIG_CLASS_FILE = CONFIG["paths"]["class_names_path"]
-# Static paths
+#Test
+CONFIG_MISSING_ANOT_DIR = CONFIG["paths"]["missing_anot_dir"]
+CONFIG_TRAIN_NEW_LABEL = CONFIG["paths"]["yolo_train_new_label"]
 
-# CLASS_FILE      = ROOT_DIR / "data/class_names.txt"
-# TRAIN_IMAGE_DIR = ROOT_DIR / "data/raw/train_images"
-# TRAIN_ANN_DIR   = ROOT_DIR / "data/raw/train_annotations"
-# OUTPUT_IMG_DIR  = ROOT_DIR / "output/contour_detection"
-# OUTPUT_DIR      = ROOT_DIR / "output"
-# CONFIG_DIR      = ROOT_DIR / "config"
-# PICKLE_PATH     = ROOT_DIR / "cache/parsed_dataset.pkl"
-# DB_PATH = ROOT_DIR / "script/db/pill_metadata.db"
 
 VAL_SPLIT = 0.1
 
@@ -50,6 +43,7 @@ VAL_SPLIT = 0.1
 #     print("Data is already downloaded.")
 
 def main():
+    create_db(CONFIG_DB_PATH)
     print("Running test script...")
     dataset = convert_to_json(CONFIG_DB_PATH)
 
@@ -107,25 +101,48 @@ def main():
         yaml.dump(data_yaml, f, allow_unicode=True)
 
     class_name_to_idx, _ = load_class_mapping(CONFIG_CLASS_FILE)
+    # merge_labels_with_db(
+    #     CONFIG_TRAIN_LABEL,
+    #     CONFIG_MISSING_ANOT_DIR,
+    #     CONFIG_TRAIN_NEW_LABEL,
+    #     class_name_to_idx,
+    #     DB_PATH
+    # )
+
+    # merge_labels_with_db(
+    #     CONFIG_VAL_LABEL,
+    #     CONFIG_MISSING_ANOT_DIR,
+    #     CONFIG_VAL_NEW_LABEL,
+    #     class_name_to_idx,
+    #     DB_PATH
+    # )
+
+
+
 
     # Define transformation
-    transform = PillImageTransform(resize=(640, 640))
+    # transform = PillImageTransform(resize=(640, 640))
 
-    # # Load train and val datasets
-    train_dataset = PillYoloDataset(
-        image_dir=CONFIG_TRAIN,
-        label_dir=CONFIG_TRAIN_LABEL,
-        class_to_idx=class_name_to_idx,
-        S=7, B=2, C=len(class_name_to_idx),
-        transform=transform
-    )
-    val_dataset = PillYoloDataset(
-        image_dir=CONFIG_VAL,
-        label_dir=CONFIG_VAL_LABEL,
-        class_to_idx=class_name_to_idx,
-        transform=transform
-    )
+    # # # Load train and val datasets
+    # train_dataset = PillYoloDataset(
+    #     image_dir=CONFIG_TRAIN,
+    #     label_dir=CONFIG_TRAIN_LABEL,
+    #     class_to_idx=class_name_to_idx,
+    #     S=7, B=2, C=len(class_name_to_idx),
+    #     transform=transform
+    # )
+    # val_dataset = PillYoloDataset(
+    #     image_dir=CONFIG_VAL,
+    #     label_dir=CONFIG_VAL_LABEL,
+    #     class_to_idx=class_name_to_idx,
+    #     transform=transform
+    # )
     print("Finished test script...")
 
 if __name__ == "__main__":
-    main()
+
+   # class_name_map = load_class_name_map(CONFIG_CLASS_FILE)
+   # draw_bboxes_on_images(CONFIG_TRAIN, CONFIG_TRAIN_LABEL, CONFIG_MINE, class_name_map)
+   # draw_bboxes_on_images(CONFIG_MINE, CONFIG_MISSING_ANOT_DIR, CONFIG_TEST, class_name_map)
+
+   main()

@@ -7,7 +7,7 @@ import random
 import shutil
 from typing import Tuple
 import sqlite3
-
+import cv2
 COMPETITION = "ai03-level1-project"
 
 def is_data_downloaded(data_dir):
@@ -116,7 +116,9 @@ def extract_category_ids_from_filename(filename):
     #  K-003483-016232-027777-031885_0_2_0_2_70_000_200.txt
     base = filename.split("_")[0]
     ids = base.split("-")[1:]  # Skip 'K'
-    return ids
+    new_ids = [str(int(i) - 1).zfill(len(i)) for i in ids]
+
+    return new_ids
 
 def get_label_ids_from_file(filepath):
     label_ids = set()
@@ -130,11 +132,101 @@ def get_label_ids_from_file(filepath):
 
 def get_category_name_from_db(category_id, conn):
     cursor = conn.cursor()
-    category_id = int(category_id) - 1  # → 3482
+    #category_id = int(category_id)
 
     cursor.execute("SELECT name FROM pill_metadata WHERE category_id = ?", (category_id,))
     row = cursor.fetchone()
     return row[0] if row else None
+
+def load_class_name_map(txt_path):
+    class_map = {}
+    with open(txt_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            if ':' not in line:
+                continue
+            idx_str, name = line.strip().split(':', 1)
+            idx = int(idx_str.strip())
+            class_map[idx] = name.strip()
+    return class_map
+from PIL import Image, ImageDraw, ImageFont
+def draw_bboxes_on_images(image_dir, label_dir, output_dir, class_name_map=None):
+    image_dir = Path(image_dir)
+    label_dir = Path(label_dir)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for image_file in image_dir.iterdir():
+        if image_file.suffix.lower() not in [".jpg", ".png"]:
+            continue
+
+        label_file = label_dir / (image_file.stem + ".txt")
+        if not label_file.exists():
+            continue  # Skip if no corresponding label
+
+        # Open image
+        image = Image.open(image_file).convert("RGB")
+        draw = ImageDraw.Draw(image)
+
+        # Load label data
+        with open(label_file, 'r') as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) != 5:
+                    continue  # skip malformed lines
+                cls_id, x_center, y_center, width, height = map(float, parts)
+                cls_id = int(cls_id)
+                label = class_name_map[cls_id] if class_name_map else str(cls_id)
+
+                img_w, img_h = image.size
+                x_center *= img_w
+                y_center *= img_h
+                width *= img_w
+                height *= img_h
+
+                x0 = int(x_center - width / 2)
+                y0 = int(y_center - height / 2)
+                x1 = int(x_center + width / 2)
+                y1 = int(y_center + height / 2)
+
+                draw.rectangle([x0, y0, x1, y1], outline="red", width=2)
+                draw.text((x0, y0 - 10), label, fill="red")
+
+        # Save only if label file existed
+        save_path = output_dir / image_file.name
+        image.save(save_path)
+
+# def draw_bboxes_on_images(image_dir, label_dir, output_dir, class_name_map=None):
+#     os.makedirs(output_dir, exist_ok=True)
+#     image_files = [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png'))]
+
+#     for image_file in image_files:
+#         image_path = os.path.join(image_dir, image_file)
+#         label_path = os.path.join(label_dir, os.path.splitext(image_file)[0] + '.txt')
+
+#         image = cv2.imread(image_path)
+#         h, w = image.shape[:2]
+
+#         if not os.path.exists(label_path):
+#             print(f"[Warning] No label found for {image_file}")
+#             continue
+
+#         with open(label_path, 'r') as f:
+#             for line in f.readlines():
+#                 cls_id, x_center, y_center, box_w, box_h = map(float, line.strip().split())
+
+#                 # Convert YOLO format to pixel coordinates
+#                 x1 = int((x_center - box_w / 2) * w)
+#                 y1 = int((y_center - box_h / 2) * h)
+#                 x2 = int((x_center + box_w / 2) * w)
+#                 y2 = int((y_center + box_h / 2) * h)
+
+#                 # Draw rectangle and label
+#                 cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+#                 label = f"{class_name_map[int(cls_id)]}" if class_name_map else str(int(cls_id))
+#                 cv2.putText(image, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
+
+#         output_path = os.path.join(output_dir, image_file)
+#         cv2.imwrite(output_path, image)
 
 
 def merge_labels_with_db(
@@ -182,7 +274,7 @@ def merge_labels_with_db(
         if not missing_label_ids:
             continue
 
-        # Step 4: Load bbox from new_label
+     
         new_bbox_lines = []
         with open(new_file, "r", encoding="utf-8") as f:
             for line in f:
