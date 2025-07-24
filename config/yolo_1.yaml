@@ -14,6 +14,12 @@ cos_lr:        false       # True→CosineAnnealing, False→Linear decay  ← �
 momentum:      0.937       # SGD 전용
 betas:         [0.9,0.999] # Adam/AdamW 전용
 
+# Data 경로 설정
+train_images_dir: data/yolo_split/train/images
+train_labels_dir: data/yolo_split/train/labels
+val_images_dir: data/yolo_split/val/images
+val_labels_dir: data/yolo_split/val/labels
+
 # 기타
 device: "auto"
 weight_decay:  0.0005

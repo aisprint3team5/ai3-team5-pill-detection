@@ -3,7 +3,8 @@ import cv2
 import torch
 import numpy as np
 from PIL import Image
-from torch.utils.data import Dataset
+from torch.utils.data.dataloader import default_collate
+from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms import ToTensor
 from config import Config
 
@@ -13,6 +14,23 @@ from config import Config
 # import numpy as np
 # from PIL import Image
 
+# TODO: 추후에 삭제 할 것
+IS_DEV = False
+DEV_TOTAL_SIZE = 8
+DEV_BATCH_SIZE = 4
+
+def my_collate(batch):
+    # batch = [(img1, tgt1, meta1), (img2, tgt2, meta2), ...]
+    imgs, tgts, metas = zip(*batch)
+
+    # img, tgt는 모두 같은 shape이므로 default_collate 사용
+    imgs = default_collate(imgs)    # → tensor (B, C, H, W)
+    tgts = default_collate(tgts)    # → tensor (B, S, S, 5+C)
+
+    # metas는 dict마다 길이가 다르니 그냥 리스트로 넘겨줌
+    metas = list(metas)             # → [meta1, meta2, ..., metaB]
+
+    return imgs, tgts, metas
 
 def preprocess_pill_image(img: np.ndarray) -> np.ndarray:
     '''
@@ -82,24 +100,21 @@ class PillYoloDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
+        print(image.shape)
+        print(boxes)
+        print(boxes.shape)
+
         return image, boxes
 
 
 def load_loaders():
+    print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
+    print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
     transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE))
-
-    # dataset & loader
-    train_ds = PillYoloDataset(
-        image_dir=CONFIG_TRAIN,
-        label_dir=CONFIG_TRAIN_LABEL,
-        class_to_idx=class_name_to_idx,
-        S=7, B=2, C=len(class_name_to_idx),
-        transform=transform
-    )
-    train_ds = VOCDataset(root='./data', image_set='train', transform=transform,
-                          S=Config.S, B=Config.B, C=Config.C)
-    val_ds = VOCDataset(root='./data', image_set='val', transform=transform,
-                        S=Config.S, B=Config.B, C=Config.C)
+    train_ds = PillYoloDataset(image_dir=Config.TRAIN_IMAGES_DIR, label_dir=Config.TRAIN_LABELS_DIR,
+                               S=Config.S, B=Config.B, C=Config.C, transform=transform)
+    val_ds = PillYoloDataset(image_dir=Config.VAL_IMAGES_DIR, label_dir=Config.VAL_LABELS_DIR,
+                             S=Config.S, B=Config.B, C=Config.C, transform=transform)
     if IS_DEV:
         # train_ds, _ = random_split(train_ds, [DEV_TOTAL_SIZE, len(train_ds)-DEV_TOTAL_SIZE])
         val_ds, _ = random_split(val_ds,   [DEV_TOTAL_SIZE, len(val_ds)-DEV_TOTAL_SIZE])
@@ -132,7 +147,7 @@ def load_loaders():
 
         # overfit_ldr  = DataLoader(overfit_ds, batch_size=32, shuffle=True)
     if IS_DEV:
-        train_loader = DataLoader(train_ds, batch_size=DEV_BATCH_SIZE, shuffle=True, collate_fn=my_collate)
+        train_loader = DataLoader(train_ds, batch_size=DEV_BATCH_SIZE, shuffle=False, collate_fn=my_collate)
     else:
         train_loader = DataLoader(train_ds, batch_size=Config.BATCH_SIZE, shuffle=True, collate_fn=my_collate)
     val_loader = DataLoader(val_ds, batch_size=Config.BATCH_SIZE, collate_fn=my_collate)

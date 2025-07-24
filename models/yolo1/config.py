@@ -16,6 +16,10 @@ class Config:
     MOMENTUM = None
     BETA = None
     OPTIMIZER = None
+    TRAIN_IMAGES_DIR = None
+    TRAIN_LABELS_DIR = None
+    VAL_IMAGES_DIR = None
+    VAL_LABELS_DIR = None
     WD = None
     EPOCHS = None
     CONF_THRESHOLD = None
@@ -39,6 +43,10 @@ class Config:
         'momentum':       'MOMENTUM',
         'betas':          'BETAS',
         'optimizer':      'OPTIMIZER',
+        'train_images_dir':    'TRAIN_IMAGES_DIR',
+        'train_labels_dir':    'TRAIN_LABELS_DIR',
+        'val_images_dir':      'VAL_IMAGES_DIR',
+        'val_labels_dir':      'VAL_LABELS_DIR',
         'weight_decay':   'WD',
         'conf_thresh':    'CONF_THRESH',
         'nms_iou_thresh': 'NMS_IOU_THRESH',
