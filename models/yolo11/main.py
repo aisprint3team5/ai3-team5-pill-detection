@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+import os
 import sys
 import argparse
 import torch
 import yaml                                  # pip install pyyaml
 from ultralytics import YOLO
+import matplotlib.font_manager as fm
+import matplotlib.pyplot as plt
 
 # ─── 1) 외부 YAML 읽어 DEFAULTS 생성 ────────────────────────────
 with open("config/yolo_11.yaml", "r", encoding="utf-8") as f:
@@ -40,6 +43,7 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'number of warmup epochs'},
 ]
 
+
 def build_parser():
     parser = argparse.ArgumentParser(
         description="Ultralytics YOLOv11 Training Script",
@@ -64,6 +68,7 @@ def build_parser():
                         help='experiment name (subfolder)')
 
     return parser
+
 
 def train_yolo11(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -90,6 +95,7 @@ def train_yolo11(args):
         **opt_kwargs
     )
 
+
 def main():
     parser = build_parser()
 
@@ -102,7 +108,13 @@ def main():
     results = train_yolo11(args)
     print(results)
 
+
 if __name__ == '__main__':
+    font_path = os.path.join(os.getcwd(), 'utils', 'font', 'KoPubWorld Batang Medium.ttf')
+    fm.fontManager.addfont(font_path)
+    font_name = fm.FontProperties(fname=font_path).get_name()
+    plt.rcParams["font.family"] = font_name
+    plt.rcParams["axes.unicode_minus"] = False
     main()
 
 '''
