@@ -5,8 +5,10 @@ import numpy as np
 from PIL import Image
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data import Dataset, DataLoader, random_split
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, v2
 from config import Config
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as patches
@@ -66,6 +68,55 @@ class PillImageTransform:
         return self.to_tensor(processed_pil)
 
 
+class AlbumentationTransform:
+    def __init__(self, resize=(640, 640)):
+        self.transform = A.Compose(
+            [
+                v2.ToResize(resize),
+                A.RandomBrightnessContrast(p=0.3),
+                A.HorizontalFlip(p=0.5),
+                A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=15, p=0.5),
+                A.Blur(p=0.2),
+                A.CLAHE(p=0.2),
+                A.Normalize(),
+                ToTensorV2(),
+            ],
+            bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels'])  # required
+        )
+
+    def __call__(self, image, boxes):
+        """
+        Args:
+            image (PIL.Image or np.ndarray): Input image.
+            boxes (torch.Tensor or list): Bounding boxes in [class_id, x_center, y_center, width, height] format (YOLO).
+
+        Returns:
+            transformed image tensor, transformed boxes tensor
+        """
+        # Convert PIL to np.ndarray if needed
+        if not isinstance(image, np.ndarray):
+            image = np.array(image)
+
+        # Prepare bbox list and class labels separately
+        if len(boxes) > 0:
+            bboxes = boxes[:, 1:].tolist()  # only bbox coords
+            class_labels = boxes[:, 0].tolist()
+        else:
+            bboxes = []
+            class_labels = []
+
+        transformed = self.transform(image=image, bboxes=bboxes, class_labels=class_labels)
+
+        # Recombine boxes: [class_id, x_center, y_center, w, h]
+        transformed_boxes = []
+        for cls_id, bbox in zip(class_labels, transformed['bboxes']):
+            transformed_boxes.append([cls_id] + list(bbox))
+
+        transformed_boxes = torch.tensor(transformed_boxes, dtype=torch.float32)
+
+        return transformed['image'], transformed_boxes
+
+
 class PillYoloDataset(Dataset):
     def __init__(self, image_dir, label_dir, S=7, B=2, C=20, transform=None):
         self.image_dir = image_dir
@@ -110,7 +161,7 @@ class PillYoloDataset(Dataset):
 def load_loaders():
     print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
     print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
-    transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    transform = AlbumentationTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE)) # PillImageTransform
     train_ds = PillYoloDataset(image_dir=Config.TRAIN_IMAGES_DIR, label_dir=Config.TRAIN_LABELS_DIR,
                                S=Config.S, B=Config.B, C=Config.C, transform=transform)
     val_ds = PillYoloDataset(image_dir=Config.VAL_IMAGES_DIR, label_dir=Config.VAL_LABELS_DIR,
