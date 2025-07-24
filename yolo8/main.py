@@ -1,34 +1,25 @@
-from config.config import load_config
-from detector.YOLOv8_detector import YOLOV8Detector
-from pipeline.inference import run_inference
-from utils.visualize import visualize_detection
-from utils.split_dataset import split_dataset
-from utils.to_submission_format import to_submission_format
-from utils.build_class_id_map import build_class_id_map
-import asyncio
 
-async def test():
-    a = r'C:\Users\USER\Desktop\dev\Deep_Learning\codeit_project\ai3-team5-pill-detection\data\raw\train_annotations'
-    coco_class_id_map = await build_class_id_map(a)
 
-    return coco_class_id_map
+
+
+
+
+
+# yolo8/main.py
+
+# 상대 import로 변경 (yolo8 패키지 내부)
+from .config.config              import load_config
+from .detector.YOLOv8_detector   import YOLOV8Detector
+from .pipeline.inference         import run_inference
+from .utils.visualize            import visualize_detection
+from .utils.split_dataset        import split_dataset
+from .utils.build_class_id_map   import build_class_id_map
+from .utils.to_submission_format import to_submission_format
 
 if __name__ == "__main__":
-    
-    # print(f"start")
-    # a = asyncio.run(test())
-
-    # # 출력 예시
-    # for k, v in sorted(a[0].items()):
-    #     print(f"{k}: {v}")
-
-    # print(a[1])
-
-    # print("finish")
-
-    # 설정 로드
-    # conf_threshold = config.get("conf_threshold", 0.25)
-    config = load_config()
+    # 설정 불러오기
+    config = load_config()  
+    # (이후 기존 코드 그대로)
     model_path = config["model"]
     conf_threshold = config["conf_threshold"]
     iou_threshold = config["iou_threshold"]
@@ -79,6 +70,7 @@ if __name__ == "__main__":
         visualize_detection([result], save_path=save_path, show=False)
         
     # 테스트 결과 저장
-    test_result = detector.test(source_path=test_image_dir)
-
-    to_submission_format(test_result)
+    
+    test_result = detector.test(source_path=config["test_image_dir"])
+    anno_dir    = config["annotation_dir"]          # data.yaml에 정의
+    to_submission_format(test_result, anno_dir)
