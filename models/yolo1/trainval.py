@@ -13,7 +13,6 @@ def train_one_epoch(model, loader, loss_fn, optimizer, device):
 
     for imgs, targets, metas in tqdm(loader, desc='Train batches'):
         imgs, targets = imgs.to(device), targets.to(device)
-        # print(imgs.shape, targets.shape)
         preds = model(imgs)
         losses = loss_fn(preds, targets)
         # losses: { 'total_loss', 'box_loss', 'cls_loss', 'dfl_loss' }

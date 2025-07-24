@@ -29,7 +29,6 @@ class Yolo1(nn.Module):
     def __init__(self, in_channels=3, S=7, B=2, C=20, conf_thresh=0.2, iou_thresh=0.4):  # split_size=7, num_boxes=2, num_classes=20
         super(Yolo1, self).__init__()
         self.S, self.B, self.C = S, B, C
-        print(in_channels, self.S, self.B, self.C)
         self.conf_thresh, self.iou_thresh = conf_thresh, iou_thresh
         self.features = Yolo1.create_conv_layers(self.architecture_config, in_channels)
         # 입력 이미지가 448x448인 경우, 마지막 컨볼루션 feature map은 7x7 (논문 기준)
@@ -61,7 +60,6 @@ class Yolo1(nn.Module):
 
         # class logits → softmax
         preds[..., 5*self.B:] = F.softmax(preds[..., 5*self.B:], dim=-1)
-        print('preds.shape: ', preds.shape)
         return preds
 
     @staticmethod
