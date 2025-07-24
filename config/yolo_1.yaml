@@ -19,7 +19,7 @@ device: "auto"
 weight_decay:  0.0005
 s: 7   # Grid size
 b: 2   # Bounding boxes per cell
-c: 20  # Classes (Pascal VOC has 20)
+c: 73  # 20  # Classes (Pascal VOC has 20)
 conf_thresh: 0.2           # 올리면 오탐 감소, 작은 객체 검출 누락 위험. 내리면 재현율과 노이즈 올라감. (객체 존재 확신도(confidence)×클래스 점수가 지정된 0.2 이하이면 검출 후보에서 제거)
 nms_iou_thresh: 0.4        # 올리면 덜 병합, 한 객체를 여러 박스로 남길 수 있음. 내리면 과도 병합, 인접 객체 병합 위험. (같은 클래스끼리 IoU가 0.4 이상인 박스 쌍에서 낮은 점수 박스를 하나씩 제거합니다.)
 project: "outputs/logs/yolo1"

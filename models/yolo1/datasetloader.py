@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
+from config import Config
 
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as patches
@@ -83,17 +84,18 @@ class PillYoloDataset(Dataset):
 
         return image, boxes
 
-def load_loaders():
 
-    # transforms
-    transform = T.Compose([
-        T.Resize((Config.IMAGE_SIZE, Config.IMAGE_SIZE)),
-        # T.RandomHorizontalFlip(0.5),
-        # T.ColorJitter(0.2, 0.2, 0.2, 0.1),
-        T.ToTensor(),
-        # T.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])
-    ])
+def load_loaders():
+    transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+
     # dataset & loader
+    train_ds = PillYoloDataset(
+        image_dir=CONFIG_TRAIN,
+        label_dir=CONFIG_TRAIN_LABEL,
+        class_to_idx=class_name_to_idx,
+        S=7, B=2, C=len(class_name_to_idx),
+        transform=transform
+    )
     train_ds = VOCDataset(root='./data', image_set='train', transform=transform,
                           S=Config.S, B=Config.B, C=Config.C)
     val_ds = VOCDataset(root='./data', image_set='val', transform=transform,
