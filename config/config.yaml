@@ -1,0 +1,10 @@
+paths:
+  input_image_dir: YOLO_dataset/images
+  input_label_dir: YOLO_dataset/labels
+  output_dir: data/yolo_split
+  yolo_train_dir: data/yolo_split/train/images
+  yolo_train_label: data/yolo_split/train/labels
+  yolo_val_dir: data/yolo_split/val/images
+  yolo_val_label: data/yolo_split/val/labels
+
+  data_yaml_path: config/data.yaml
