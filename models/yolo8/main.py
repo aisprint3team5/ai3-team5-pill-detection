@@ -4,8 +4,28 @@ from pipeline.inference import run_inference
 from utils.visualize import visualize_detection
 from utils.split_dataset import split_dataset
 from utils.to_submission_format import to_submission_format
+from utils.build_class_id_map import build_class_id_map
+import asyncio
+
+async def test():
+    a = r'C:\Users\USER\Desktop\dev\Deep_Learning\codeit_project\ai3-team5-pill-detection\data\raw\train_annotations'
+    coco_class_id_map = await build_class_id_map(a)
+
+    return coco_class_id_map
 
 if __name__ == "__main__":
+    
+    # print(f"start")
+    # a = asyncio.run(test())
+
+    # # 출력 예시
+    # for k, v in sorted(a[0].items()):
+    #     print(f"{k}: {v}")
+
+    # print(a[1])
+
+    # print("finish")
+
     # 설정 로드
     # conf_threshold = config.get("conf_threshold", 0.25)
     config = load_config()

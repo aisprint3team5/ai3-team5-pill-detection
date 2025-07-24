@@ -1,47 +1,59 @@
 import os
-import csv
 import pandas as pd
+import asyncio
+from utils.build_class_id_map import build_class_id_map
 
 def to_submission_format(model_results, csv_save_path="runs/predictions/test_predictions.csv"):
-    # 결과 수집용 리스트
     data = []
-    annotation_id = 1  # annotation_id는 1부터 시작
+    annotation_dir = r'C:\Users\USER\Desktop\dev\Deep_Learning\codeit_project\ai3-team5-pill-detection\data\raw\train_annotations'
 
-    # 이미지별로 결과 저장
+    # category_map, yolo_class_names 생성
+    category_map, yolo_class_names = asyncio.run(build_class_id_map(annotation_dir))
+    name_to_category_id = {v: k for k, v in category_map.items()}
+    yolo_cls_to_category_id = {
+        i: name_to_category_id.get(name, -1)
+        for i, name in enumerate(yolo_class_names)
+    }
+
+    # YOLO 결과 → 리스트 저장
     for result in model_results:
         image_path = result.path
         image_name = os.path.basename(image_path)
-        image_id = int(os.path.splitext(image_name)[0])  # '123.png' → 123 (숫자만 추출)
+        image_id = int(os.path.splitext(image_name)[0])  # 예: '123.png' → 123
 
         boxes = result.boxes
         for box in boxes:
-            cls_id = int(box.cls[0])                 # category_id
-            conf = float(box.conf[0])                # confidence score
-            xyxy = box.xyxy[0].tolist()              # [x1, y1, x2, y2]
+            cls_id = int(box.cls[0])
+            conf = float(box.conf[0])
+
+            category_id = yolo_cls_to_category_id.get(cls_id, -1)
+            if category_id == -1:
+                print(f"cls_id {cls_id} 의 category_id 매핑 없음 → 건너뜀")
+                continue
 
             cx, cy, w, h = box.xywh[0].tolist()
             x1 = cx - w / 2
             y1 = cy - h / 2
-            bbox_w = w
-            bbox_h = h
 
             data.append({
-                'annotation_id': annotation_id,
                 'image_id': image_id,
-                'category_id': cls_id,
+                'category_id': category_id,
                 'bbox_x': int(x1),
                 'bbox_y': int(y1),
-                'bbox_w': int(bbox_w),
-                'bbox_h': int(bbox_h),
-                'score': round(conf, 4)
+                'bbox_w': int(w),
+                'bbox_h': int(h),
+                'score': round(conf, 2)
             })
-            annotation_id += 1
 
-    # 디렉토리가 없으면 생성
-    os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
-
-    # DataFrame으로 저장
+    # image_id 기준 정렬
     df = pd.DataFrame(data)
-    df.to_csv(csv_save_path, index=False)
+    df = df.sort_values(by="image_id").reset_index(drop=True)
+
+    # annotation_id 재부여 (1부터 시작)
+    df.insert(0, 'annotation_id', range(1, len(df) + 1))
+
+    # 디렉토리 생성 및 저장
+    os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
+    df.to_csv(csv_save_path, index=False, encoding="utf-8")
 
     print(f"제출 포맷으로 결과 저장 완료: {csv_save_path}")
