@@ -1,9 +1,7 @@
 import torch
 
 
-# ────────────────────────────────────────────────────────────────
 # Yolo1 손실 함수 (채널 매핑: 0–4 box1,4 conf1,5–9 box2,9 conf2,10–29 class)
-# ────────────────────────────────────────────────────────────────
 def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
     def iou_xyxy(boxes1, boxes2):
         x11, y11, x12, y12 = boxes1.unbind(-1)
@@ -123,5 +121,13 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
             class_loss
         )
         batch_size = predictions.size(0)
-        return total_loss / batch_size  # 배치 사이즈로 나눠준다.
+        # return total_loss / batch_size  # 배치 사이즈로 나눠준다.
+    
+        return {
+            "total_loss": total_loss / batch_size,
+            "box_loss":   box_loss / batch_size,
+            "cls_loss":   class_loss / batch_size,
+            # DFL 대신 confidence losses 합을 dfl_loss로 간주
+            "dfl_loss":   (obj_conf_loss + noobj_loss) / batch_size
+        }
     return yolo_loss

@@ -1,12 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from yolo1_loss import Yolo1Loss
-
-
-# ------------------------------------------------------------------------------
-# Model Definition (Yolo1)
-# ------------------------------------------------------------------------------
 
 
 class Yolo1(nn.Module):
@@ -35,6 +29,7 @@ class Yolo1(nn.Module):
     def __init__(self, in_channels=3, S=7, B=2, C=20, conf_thresh=0.2, iou_thresh=0.4):  # split_size=7, num_boxes=2, num_classes=20
         super(Yolo1, self).__init__()
         self.S, self.B, self.C = S, B, C
+        print(in_channels, self.S, self.B, self.C)
         self.conf_thresh, self.iou_thresh = conf_thresh, iou_thresh
         self.features = Yolo1.create_conv_layers(self.architecture_config, in_channels)
         # 입력 이미지가 448x448인 경우, 마지막 컨볼루션 feature map은 7x7 (논문 기준)
@@ -45,18 +40,15 @@ class Yolo1(nn.Module):
             nn.Dropout(0.5),  # 논문에서 사용한 dropout
             nn.Linear(4096, S * S * (C + B * 5))
         )
-        self.loss_fn = Yolo1Loss(self.S, self.B, self.C)
 
-    def forward(self, x, targets=None):
+    def forward(self, x):
         # x: [B,3,H,W] → features → [B,1024,S,S]
         x = self.features(x)
         # classifier → [B, S*S*(5B + C)]
         x = self.classifier(x)
         # reshape → [B, S, S, 5B + C]
-        # print('YOLOv1 forward', x.view(-1, self.S, self.S, 5*self.B + self.C).size())
         # YOLOv1 forward torch.Size([16, 7, 7, 30])
         x = x.view(-1, self.S, self.S, 5*self.B + self.C)  # 계산 복잡도를 낮추기 위해 (N, S, S, 5*B+C) 형태로 반환한다.
-
         preds = x
 
         # — 활성화 적용 —
@@ -69,6 +61,7 @@ class Yolo1(nn.Module):
 
         # class logits → softmax
         preds[..., 5*self.B:] = F.softmax(preds[..., 5*self.B:], dim=-1)
+        print('preds.shape: ', preds.shape)
         return preds
 
     @staticmethod
