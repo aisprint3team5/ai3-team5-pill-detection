@@ -7,9 +7,6 @@ import cv2
 from PIL import Image
 import torch
 
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-import numpy as np
 
 class AlbumentationTransform:
     def __init__(self):
