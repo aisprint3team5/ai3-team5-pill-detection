@@ -7,8 +7,7 @@ iou_threshold: 0.4
 # TODO 각 하이퍼파라미터 값 변경
 # TODO test 이미지 경로 입력
 # 학습 설정
-train_data_yaml: 'C:\Users\USER\Desktop\dev\Deep_Learning\codeit_project\ai3-team5-pill-detection\data.yaml' # "../../data.yaml"
-
+train_data_yaml:  ../data.yaml
 epochs: 50
 patience: 5
 image_size: 416

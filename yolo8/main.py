@@ -19,7 +19,13 @@ from .utils.to_submission_format import to_submission_format
 if __name__ == "__main__":
     # 설정 불러오기
     config = load_config()  
-    # (이후 기존 코드 그대로)
+
+    # 프로젝트 루트 기준으로 data.yaml 위치 설정
+    from pathlib import Path
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]  # …/yolo8 → level1 = 프로젝트 루트
+    config['train_data_yaml'] = str(PROJECT_ROOT / 'data.yaml')
+
+
     model_path = config["model"]
     conf_threshold = config["conf_threshold"]
     iou_threshold = config["iou_threshold"]
