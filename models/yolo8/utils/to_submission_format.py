@@ -2,11 +2,12 @@ import os
 import pandas as pd
 import asyncio
 from utils.build_class_id_map import build_class_id_map
+import config.path as PATH
 
-def to_submission_format(model_results, csv_save_path="runs/predictions/test_predictions.csv"):
+def to_submission_format(model_results, test_start_timestamp):
     data = []
-    annotation_dir = r'C:\Users\USER\Desktop\dev\Deep_Learning\codeit_project\ai3-team5-pill-detection\data\raw\train_annotations'
-
+    annotation_dir = PATH.TRAIN_ANNOTATION_DIR
+    
     # category_map, yolo_class_names 생성
     category_map, yolo_class_names = asyncio.run(build_class_id_map(annotation_dir))
     name_to_category_id = {v: k for k, v in category_map.items()}
@@ -52,8 +53,10 @@ def to_submission_format(model_results, csv_save_path="runs/predictions/test_pre
     # annotation_id 재부여 (1부터 시작)
     df.insert(0, 'annotation_id', range(1, len(df) + 1))
 
-    # 디렉토리 생성 및 저장
-    os.makedirs(os.path.dirname(csv_save_path), exist_ok=True)
-    df.to_csv(csv_save_path, index=False, encoding="utf-8")
+    dynamic_csv_save_path = PATH.CSV_SAVE_PATH / test_start_timestamp / "submission.csv"
 
-    print(f"제출 포맷으로 결과 저장 완료: {csv_save_path}")
+    # 디렉토리 생성 및 저장
+    os.makedirs(dynamic_csv_save_path.parent, exist_ok=True)
+    df.to_csv(dynamic_csv_save_path, index=False, encoding="utf-8")
+
+    print(f"제출 포맷으로 결과 저장 완료: {dynamic_csv_save_path}")
