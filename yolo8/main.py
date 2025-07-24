@@ -5,7 +5,10 @@
 
 
 
+
 # yolo8/main.py
+from pathlib import Path
+import yaml
 
 # 상대 import로 변경 (yolo8 패키지 내부)
 from .config.config              import load_config
