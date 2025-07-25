@@ -27,6 +27,7 @@ class Config:
     PROJECT = None
     NAME = None
     DEVICE = None
+    CLASS_NAMES = None
 
     # ─── 1) YAML 키 → 클래스 속성명 매핑 ────────────────────────────────
     KEY_MAP = {
@@ -75,6 +76,11 @@ class Config:
                 if isinstance(val, str) and val.lower() == 'auto':
                     val = 'cuda' if torch.cuda.is_available() else 'cpu'
             setattr(cls, attr, val)
+
+        # 4) Class Name 정보 로드
+        with open('data.yaml', 'r', encoding='utf-8') as f:
+            class_names = yaml.safe_load(f)['names']
+            setattr(cls, 'CLASS_NAMES', class_names)
 
 
 def parse_args(yaml_path):

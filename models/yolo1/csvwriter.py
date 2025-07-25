@@ -13,25 +13,27 @@ FIELDNAMES = [
 
 
 def get_info(epoch, epoch_time, train_loss, metrics, val_loss, lrs):
+    def format(value):
+        return f'{value:.5f}'
     return {
         'epoch': epoch,
-        'time': f'{epoch_time:.4f}',
+        'time': f'{epoch_time:.2f}',
 
         # train losses
-        'train/box_loss': train_loss['box_loss'],
-        'train/cls_loss': train_loss['cls_loss'],
-        'train/dfl_loss': train_loss['dfl_loss'],
+        'train/box_loss': format(train_loss['box_loss']),
+        'train/cls_loss': format(train_loss['cls_loss']),
+        'train/dfl_loss': format(train_loss['dfl_loss']),
 
         # val metrics
-        'metrics/precision(B)': metrics['precision'],
-        'metrics/recall(B)':    metrics['recall'],
-        'metrics/mAP50(B)':     metrics['mAP50'],
-        'metrics/mAP50-95(B)':  metrics['mAP5095'],
+        'metrics/precision(B)': format(metrics['precision']),
+        'metrics/recall(B)':    format(metrics['recall']),
+        'metrics/mAP50(B)':     format(metrics['mAP50']),
+        'metrics/mAP50-95(B)':  format(metrics['mAP5095']),
 
         # val losses
-        'val/box_loss': val_loss['box_loss'],
-        'val/cls_loss': val_loss['cls_loss'],
-        'val/dfl_loss': val_loss['dfl_loss'],
+        'val/box_loss': format(val_loss['box_loss']),
+        'val/cls_loss': format(val_loss['cls_loss']),
+        'val/dfl_loss': format(val_loss['dfl_loss']),
 
         # learning rates
         'lr/pg0': lrs[0] if len(lrs) > 0 else None,

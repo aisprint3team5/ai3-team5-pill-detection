@@ -1,6 +1,8 @@
 import os
 import time
 import torch
+import matplotlib.font_manager as fm
+import matplotlib.pyplot as plt
 from torch.optim import Optimizer
 from torch.nn import Module
 from yolo1 import Yolo1
@@ -12,7 +14,7 @@ from trainval import train_one_epoch, validate
 # from datasetloadervoc import load_loaders
 from datasetloader import load_loaders
 from csvwriter import add_csv_log
-from vocsample_inference import run_sample_inference
+from sample_inference import run_sample_inference
 
 
 def main():
@@ -69,4 +71,9 @@ def main():
 
 
 if __name__ == '__main__':
+    font_path = os.path.join(os.getcwd(), 'utils', 'font', 'KoPubWorld Batang Medium.ttf')
+    fm.fontManager.addfont(font_path)
+    font_name = fm.FontProperties(fname=font_path).get_name()
+    plt.rcParams["font.family"] = font_name
+    plt.rcParams["axes.unicode_minus"] = False
     main()
