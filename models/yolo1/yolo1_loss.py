@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 
 # Yolo1 손실 함수 (채널 매핑: 0–4 box1,4 conf1,5–9 box2,9 conf2,10–29 class)
@@ -108,10 +109,25 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
         noobj_loss = torch.sum((noobj_mask * preds[..., 4:5]) ** 2)
         noobj_loss += torch.sum((noobj_mask * preds[..., 9:10]) ** 2)
 
-        # 11) Class probability loss (channels 10~10+C)
+        # 11) Class probability loss (channels 10~10+C): from MSE -> CrossEntropy (11-1 ~ 11-4)
         cls_pred = preds[..., 10:10+C]
         cls_target = target[..., 10:10+C]
-        class_loss = torch.sum((exists_box * (cls_pred - cls_target)) ** 2)
+        # class_loss = torch.sum((exists_box * (cls_pred - cls_target)) ** 2) # YOLOv1 오리지널 구현(MSE)
+
+        # 11-1) object가 있는 셀만 골라내기
+        # exists_box: (batch, S, S, 1) → mask: (batch, S, S)
+        obj_mask = exists_box.squeeze(-1).bool()
+
+        # 11-2) 예측과 정답을 2D로 펼치기
+        cls_pred_flat = cls_pred[obj_mask]
+        cls_target_flat = cls_target[obj_mask]
+
+        # 11-3) one-hot → class index 변환
+        #   예: [0,0,1,0] → 2
+        target_indices = cls_target_flat.argmax(dim=-1)  # (N_obj,)
+
+        # 11-4) CrossEntropyLoss 계산 (reduction='sum' 으로 MSE와 비슷한 스케일 유지)
+        class_loss = F.cross_entropy(cls_pred_flat, target_indices, reduction='sum')
 
         # 12) 총합
         total_loss = (
@@ -123,9 +139,10 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
         batch_size = predictions.size(0)
         # return total_loss / batch_size  # 배치 사이즈로 나눠준다.
 
-        # print(f'box_loss={box_loss.item():.6f}, obj_conf={obj_conf_loss.item():.6f}, noobj={noobj_loss.item():.6f}, class={class_loss.item():.6f}')
-        # print('total before /batch', total_loss)
-        # print('batch_size:', batch_size)
+        if total_loss is None:
+            print(f'box_loss={box_loss.item():.6f}, obj_conf={obj_conf_loss.item():.6f}, noobj={noobj_loss.item():.6f}, class={class_loss.item():.6f}')
+            print('total before /batch', total_loss)
+            print('batch_size:', batch_size)
 
         return {
             'total_loss': total_loss / batch_size,
