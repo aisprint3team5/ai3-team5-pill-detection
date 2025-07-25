@@ -29,14 +29,14 @@ def my_collate(batch):
 class PillYoloDataset(Dataset):
     def __init__(self, image_dir: str, label_dir: str | None = None,
                  S: int = 7, B: int = 2, C: int = 73, transform=None):
-        """
+        '''
         Args:
             image_dir:   이미지 파일(.jpg/.png)들이 있는 폴더
             label_dir:   YOLO 포맷(.txt) 라벨들이 있는 폴더
             S, B, C:     YOLO 타일 크기/박스 수/클래스 수
             class_names: 인덱스→클래스명 맵(예: ['pillA','pillB',...])
             transform:   이미지 전처리/augment 함수 (PIL→Tensor 등)
-        """
+        '''
         self.image_dir = image_dir
         self.label_dir = label_dir
         self.test = (label_dir is None)
@@ -105,7 +105,7 @@ class PillYoloDataset(Dataset):
             target = None
 
         # 5) 메타 구성
-        meta = {"image_id": image_id}
+        meta = {'image_id': image_id}
         #    bounding box를 VOC 스타일(normalized [x1,y1,x2,y2])로 저장
         if not self.test:
             yolo_boxes = []
