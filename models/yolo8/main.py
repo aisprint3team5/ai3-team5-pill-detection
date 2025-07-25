@@ -1,4 +1,3 @@
-from config.config import load_config
 import config.path as PATH
 from detector.YOLOv8_detector import YOLOV8Detector
 from pipeline.inference import run_inference
@@ -6,18 +5,20 @@ from utils.visualize import visualize_detection
 from utils.split_dataset import split_dataset
 from utils.to_submission_format import to_submission_format
 from utils.build_class_id_map import build_class_id_map
+from utils.select_model import SelectModel
 import asyncio
 from pathlib import Path
 import os
 
 if __name__ == "__main__":
-    config = load_config(PATH.YOLO8_YAML_PATH)
+    selector = SelectModel()
+    model_file_name, config = selector.build()
     print(f"🙏🙏🙏🙏🙏🙏🙏: {config}")
-    model_path = config["model"]
+
     conf_threshold = config["conf_threshold"]
     iou_threshold = config["iou_threshold"]
     
-    train_data_yaml = Path(__file__).resolve().parent.parent.parent / config["train_data_yaml"]
+    train_data_yaml = PATH.ROOT_DIR / config["train_data_yaml"]
 
     train_epoch = config["epochs"]
     train_patience = config["patience"]
@@ -27,6 +28,8 @@ if __name__ == "__main__":
     test_image_dir = config["test_image_dir"]
 
     print(f'asdasdasd: {train_data_yaml}')
+
+    model_path = PATH.MODEL_PATH / model_file_name
 
     # YOLOv8 Detector 객체 생성
     detector = YOLOV8Detector(
