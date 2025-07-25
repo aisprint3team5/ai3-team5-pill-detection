@@ -125,8 +125,8 @@ class PillYoloDataset(Dataset):
 
 
 def load_loaders():
-    print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
-    print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
+    # print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
+    # print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
     transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE)) # PillImageTransform AlbumentationTransform
     train_ds = PillYoloDataset(image_dir=Config.TRAIN_IMAGES_DIR, label_dir=Config.TRAIN_LABELS_DIR,
                                S=Config.S, B=Config.B, C=Config.C, transform=transform)

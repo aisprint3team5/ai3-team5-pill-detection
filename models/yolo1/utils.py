@@ -1,10 +1,12 @@
 import os
 import torch
+import argparse
 import matplotlib.pyplot as plt
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from config import Config
 from torchvision.ops import nms
+import yaml
 
 
 class Utils:
@@ -175,6 +177,33 @@ class Utils:
             os.makedirs(folder, exist_ok=True)
             torch.save(model.state_dict(), ckpt_file)
         return save_model
+
+    def save_args():
+        _, args_arr = argparse.ArgumentParser().parse_known_args()
+        folder: str = os.path.join(Config.PROJECT, Config.NAME)
+        args_path: str = os.path.join(folder, 'args.yaml')
+        args = {}
+        key = None
+        for token in args_arr:  # ex) ['--name', 'exp7', '--epochs', '2']
+            if token.startswith("--"):
+                key = token[2:]            # '--name' -> 'name'
+                args[key] = None
+            else:
+                if key is not None:
+                    args[key] = token      # 'exp7'
+                    key = None
+
+        os.makedirs(folder, exist_ok=True)
+        with open(args_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(args, f, default_flow_style=False, allow_unicode=True)
+        print(f"[INFO] saved args -> {args_path}")
+
+    def load_args():
+        folder: str = os.path.join(Config.PROJECT, Config.NAME)
+        args_path: str = os.path.join(folder, 'args.yaml')
+        with open(args_path, 'r', encoding='utf-8') as f:
+            args = yaml.safe_load(f)
+        return args
 
     def draw_detections_pil(image_tensor, detections, class_names, output_path=None):
         '''
