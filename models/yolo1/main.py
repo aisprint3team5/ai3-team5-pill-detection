@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from torch.optim import Optimizer
 from torch.nn import Module
 from yolo1 import Yolo1
+from utils import Utils
 from config import Config, parse_args
 from yolo1_loss import Yolo1Loss
 from optimizer import build_optimizer
@@ -27,6 +28,7 @@ def main():
 
     model: Module = Yolo1(Config.IMAGE_CH_SIZE, Config.S, Config.B, Config.C,
                           Config.CONF_THRESH, Config.NMS_IOU_THRESH).to(Config.DEVICE)
+    save_model = Utils.load_model(model, 'model')
     elapsed = time.time() - start_time
     print(f'Model is defined! ({elapsed:.1f}s)')
     loss_fn = Yolo1Loss(Config.S, Config.B, Config.C)
@@ -58,10 +60,13 @@ def main():
         csv_path = os.path.join(Config.PROJECT, Config.NAME, 'results.csv')
         add_csv_log(csv_path, epoch, epoch_time, train_loss, metrics, val_loss, lrs)
 
+        save_model()
+
         # 5) Checkpoint
         if val_loss['total_loss'] < best_val_loss:
+            path: str = os.path.join(Config.PROJECT, Config.NAME, 'best_model.pth')
             best_val_loss = val_loss['total_loss']
-            torch.save(model.state_dict(), 'best_model.pth')
+            torch.save(model.state_dict(), path)
             print(f' New best model saved (val_loss={best_val_loss:.4f})')
 
     elapsed = time.time() - start_time

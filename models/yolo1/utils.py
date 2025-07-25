@@ -14,11 +14,11 @@ class Utils:
     @staticmethod
     def postprocess(output, conf_thresh, iou_thresh, S, B, C, flatten=False):
         boxes, scores, classes = Utils.decode_predictions(output, conf_thresh, S, B, C)
-        print('boxes: ', len(boxes), boxes[0].numel())
-        print('scores: ', len(scores), scores[0].numel())
-        print('classes: ', len(classes), classes[0].numel())
+        # print('boxes: ', len(boxes), boxes[0].numel())
+        # print('scores: ', len(scores), scores[0].numel())
+        # print('classes: ', len(classes), classes[0].numel())
         detections = Utils.apply_nms(boxes, scores, classes, iou_thresh)
-        print('detections: ', len(detections), detections[0].numel())
+        # print('detections: ', len(detections), detections[0].numel())
         if flatten:
             return torch.cat(detections, dim=0)  # if flatten=True : 모든 이미지를 하나의 텐서 (∑K_i, 6)로 합침
         return torch.stack(detections, dim=0)  # return: if flatten=False: 배치별 리스트 of 텐서 (N, K_i, 6) 반환
@@ -154,7 +154,9 @@ class Utils:
         return batch_detections
 
     def load_model(model, name):
-        ckpt_file = Path(f'./models/{name}.pth')
+        folder: str = os.path.join(Config.PROJECT, Config.NAME)
+        model_path: str = os.path.join(folder, f'{name}.pth')
+        ckpt_file = Path(model_path)
         if ckpt_file.is_file():
             state = torch.load(ckpt_file, map_location=torch.device(Config.DEVICE))
             model.load_state_dict(state)
@@ -165,12 +167,12 @@ class Utils:
             if input_file.is_file():
                 state = torch.load(input_file, map_location=torch.device(Config.DEVICE))
                 model.load_state_dict(state)
-                print(f'Loaded input from {input_file}')
+                print(f'Loaded input from {input_file} from kaggle')
             else:
-                print(f'No loaded input at {ckpt_file}, skipping load')   
+                print(f'No loaded input at {ckpt_file}, skipping load')
 
         def save_model():
-            os.makedirs('./models', exist_ok=True)
+            os.makedirs(folder, exist_ok=True)
             torch.save(model.state_dict(), ckpt_file)
         return save_model
 

@@ -97,7 +97,7 @@ class PillYoloDataset(Dataset):
                 dx = (x_c - j*cell_size) / cell_size
                 dy = (y_c - i*cell_size) / cell_size
 
-                print('[dx, dy, bw, bh]', target.shape, i, j, torch.tensor([dx, dy, bw, bh]).shape, dx, dy, bw, bh)
+                # print('[dx, dy, bw, bh]', target.shape, i, j, torch.tensor([dx, dy, bw, bh]).shape, dx, dy, bw, bh)
                 # 첫 번째 예측 박스 slot에 값 할당
                 target[i, j, 0:4] = torch.tensor([dx, dy, bw, bh])
                 target[i, j, 4] = 1.0               # objectness
@@ -121,15 +121,6 @@ class PillYoloDataset(Dataset):
                 'labels': labels,               # class indices
                 'label_names': [self.class_names[c] for c in labels]
             })
-        print(meta)
-        # print('img.shape: ', img.shape)
-        # print('target.shape: ', target.shape)
-        # print('len(boxes): ', len(boxes), ', boxes[0]: ', boxes[0])
-        # print('meta: ', meta)
-        # print('boxes: ')
-        # print(boxes)
-        # print('target:')
-        # print(target)
 
         return img, target, meta
 
