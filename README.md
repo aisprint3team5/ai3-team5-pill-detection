@@ -61,6 +61,25 @@ ai3-team5-pill-detection/
 ```
 ---
 
+## Yolo1 실행방법
+### 훈련
+```
+python models/yolo1/main.py --name exp1
+
+usage: main.py [-h] [--epochs EPOCHS] [--batch BATCH] [--imgsz IMGSZ] [--imgchsz IMGCHSZ] [--optimizer OPTIMIZER]
+                 [--lr0 LR0] [--lrf LRF] [--cos_lr] [--momentum MOMENTUM] [--betas BETAS]
+                 [--train_images_dir TRAIN_IMAGES_DIR] [--train_labels_dir TRAIN_LABELS_DIR]
+                 [--val_images_dir VAL_IMAGES_DIR] [--val_labels_dir VAL_LABELS_DIR]
+                 [--test_images_dir TEST_IMAGES_DIR] [--device DEVICE] [--weight_decay WEIGHT_DECAY] [--s S] [--b B]
+                 [--c C] [--conf_thresh CONF_THRESH] [--nms_iou_thresh NMS_IOU_THRESH] [--project PROJECT] --name NAME
+```
+
+### 제출용 csv 파일생성
+파라미터는 훈련할 때 이미 넘겼으므로 name 만 넘긴다.
+```
+python models/yolo1/submit.py --name exp1
+```
+
 ## Yolo11 실행방법
 ```
 python models/yolo11/main.py -- name exp1

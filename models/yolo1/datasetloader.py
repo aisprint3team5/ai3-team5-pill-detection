@@ -18,7 +18,7 @@ def my_collate(batch):
 
     # img, tgt는 모두 같은 shape이므로 default_collate 사용
     imgs = default_collate(imgs)    # → tensor (B, C, H, W)
-    tgts = default_collate(tgts)    # → tensor (B, S, S, 5+C)
+    tgts = default_collate(tgts) if tgts[0] is not None else None   # → tensor (B, S, S, 5+C)
 
     # metas는 dict마다 길이가 다르니 그냥 리스트로 넘겨줌
     metas = list(metas)             # → [meta1, meta2, ..., metaB]
@@ -54,6 +54,7 @@ class PillYoloDataset(Dataset):
         fname = self.image_files[idx]
         img_path = os.path.join(self.image_dir, fname)
         img = Image.open(img_path).convert('RGB')
+        width, height = img.width, img.height
         image_id = os.path.splitext(fname)[0]
 
         # 2) Load YOLO 라벨: [cls, x_c, y_c, w, h] (normalized) -> 0 ~ 1 사이
@@ -105,7 +106,7 @@ class PillYoloDataset(Dataset):
             target = None
 
         # 5) 메타 구성
-        meta = {'image_id': image_id}
+        meta = {'image_id': image_id, 'width': width, 'height': height}
         #    bounding box를 VOC 스타일(normalized [x1,y1,x2,y2])로 저장
         if not self.test:
             yolo_boxes = []
@@ -125,8 +126,8 @@ class PillYoloDataset(Dataset):
 
 
 def load_loaders():
-    print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
-    print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
+    # print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
+    # print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
     transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE)) # PillImageTransform AlbumentationTransform
     train_ds = PillYoloDataset(image_dir=Config.TRAIN_IMAGES_DIR, label_dir=Config.TRAIN_LABELS_DIR,
                                S=Config.S, B=Config.B, C=Config.C, transform=transform)
@@ -169,3 +170,10 @@ def load_loaders():
         train_loader = DataLoader(train_ds, batch_size=Config.BATCH_SIZE, shuffle=True, collate_fn=my_collate)
     val_loader = DataLoader(val_ds, batch_size=Config.BATCH_SIZE, collate_fn=my_collate)
     return train_loader, val_loader
+
+
+def load_test_loaders():
+    transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    test_ds = PillYoloDataset(image_dir=Config.TEST_IMAGES_DIR, S=Config.S, B=Config.B, C=Config.C, transform=transform)
+    test_loader = DataLoader(test_ds, batch_size=Config.BATCH_SIZE, collate_fn=my_collate)
+    return test_loader

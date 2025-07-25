@@ -20,11 +20,13 @@ from sample_inference import run_sample_inference
 
 def main():
     start_time = time.time()
-    # 1) 인자 파싱
     config_file: str = 'config/yolo_1.yaml'
+    # 1) 인자 파싱
     args = parse_args(config_file)
     # 2) Config 로드 + 덮어쓰기
     Config.load(config_file, vars(args))
+    # 3) 인자 저장
+    Utils.save_args()
 
     model: Module = Yolo1(Config.IMAGE_CH_SIZE, Config.S, Config.B, Config.C,
                           Config.CONF_THRESH, Config.NMS_IOU_THRESH).to(Config.DEVICE)
