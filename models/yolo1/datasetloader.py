@@ -7,7 +7,6 @@ from config import Config
 from transforms import PillImageTransform
 
 
-# TODO: 추후에 삭제 할 것
 IS_DEV = False
 DEV_TOTAL_SIZE = 8
 DEV_BATCH_SIZE = 4
