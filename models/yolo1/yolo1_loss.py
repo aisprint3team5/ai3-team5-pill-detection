@@ -122,10 +122,10 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
         )
         batch_size = predictions.size(0)
         # return total_loss / batch_size  # 배치 사이즈로 나눠준다.
-    
-        print(f'box_loss={box_loss.item():.6f}, obj_conf={obj_conf_loss.item():.6f}, noobj={noobj_loss.item():.6f}, class={class_loss.item():.6f}')
-        print('total before /batch', total_loss)
-        print('batch_size:', batch_size)
+
+        # print(f'box_loss={box_loss.item():.6f}, obj_conf={obj_conf_loss.item():.6f}, noobj={noobj_loss.item():.6f}, class={class_loss.item():.6f}')
+        # print('total before /batch', total_loss)
+        # print('batch_size:', batch_size)
 
         return {
             'total_loss': total_loss / batch_size,
