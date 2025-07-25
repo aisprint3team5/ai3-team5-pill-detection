@@ -57,7 +57,7 @@ def main():
 
         # 4) Logging
         lrs = scheduler.get_last_lr()
-        print(f'Epoch {epoch:02d} | LR {lrs[0]:.6f} | Train Loss: {train_loss['total_loss']:.4f} | Val Loss: {val_loss['total_loss']:.4f}')
+        print(f"Epoch {epoch:02d} | LR {lrs[0]:.6f} | Train Loss: {train_loss['total_loss']:.4f} | Val Loss: {val_loss['total_loss']:.4f}")
 
         csv_path = os.path.join(Config.PROJECT, Config.NAME, 'results.csv')
         add_csv_log(csv_path, epoch, epoch_time, train_loss, metrics, val_loss, lrs)
