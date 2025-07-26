@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import torch
 import datetime
+import config.path as PATH
 
 class YOLOV8Detector():
     def __init__(self, model_path: str, conf_threshold: float):
@@ -24,7 +25,7 @@ class YOLOV8Detector():
             patience=patience,
             imgsz=imgsz,
             batch=batch_size,
-            project="runs/detect/train",
+            project=PATH.TRAIN_LOG_PATH,
             name=f"train_results_{self.run_time}",
             device=device,
             exist_ok=True
@@ -48,9 +49,9 @@ class YOLOV8Detector():
             save=True,           
             save_txt=True,       
             save_conf=True,      
-            project="runs/detect/test",
+            project=PATH.TEST_LOG_PATH,
             name=f"test_results_{self.run_time}",  # 원하는 이름 지정
             exist_ok=True
         )
         
-        return results
+        return results , self.run_time

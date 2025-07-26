@@ -1,19 +1,24 @@
-from config.config import load_config
+import config.path as PATH
 from detector.YOLOv8_detector import YOLOV8Detector
 from pipeline.inference import run_inference
 from utils.visualize import visualize_detection
 from utils.split_dataset import split_dataset
 from utils.to_submission_format import to_submission_format
+from utils.build_class_id_map import build_class_id_map
+from utils.select_model import SelectModel
+import asyncio
+from pathlib import Path
+import os
 
 if __name__ == "__main__":
-    # 설정 로드
-    # conf_threshold = config.get("conf_threshold", 0.25)
-    config = load_config()
-    model_path = config["model"]
+    selector = SelectModel()
+    model_file_name, config = selector.build()
+    print(f"🙏🙏🙏🙏🙏🙏🙏: {config}")
+
     conf_threshold = config["conf_threshold"]
     iou_threshold = config["iou_threshold"]
     
-    train_data_yaml = config["train_data_yaml"]
+    train_data_yaml = PATH.ROOT_DIR / config["train_data_yaml"]
 
     train_epoch = config["epochs"]
     train_patience = config["patience"]
@@ -21,16 +26,10 @@ if __name__ == "__main__":
     batch_size = config["batch_size"]
 
     test_image_dir = config["test_image_dir"]
-    save_path = config["run_save_path"]
-    
-    # TODO: 혜준님 코드와 병햡 필요한 부분
-    # split_dataset(
-    #     images_dir=config["train_images_dir"],
-    #     labels_dir=config["train_labels_dir"],
-    #     output_dir=config["output_dir"]
-    # )
 
     print(f'asdasdasd: {train_data_yaml}')
+
+    model_path = PATH.MODEL_PATH / model_file_name
 
     # YOLOv8 Detector 객체 생성
     detector = YOLOV8Detector(
@@ -40,7 +39,7 @@ if __name__ == "__main__":
 
     # 모델 학습
     detector.train(
-        data_yaml_path=train_data_yaml,
+        data_yaml_path= train_data_yaml,
         epochs=train_epoch,
         patience=train_patience,
         imgsz=image_size,
@@ -55,10 +54,10 @@ if __name__ == "__main__":
     
     # 시각화 결과 저장
     for idx, result in enumerate(results):
-        save_path = f"outputs/result_{idx}.jpg"
+        save_path = f"{PATH.VISUALIZATION_SAVE_PATH}/result_{idx}.jpg"
         visualize_detection([result], save_path=save_path, show=False)
         
     # 테스트 결과 저장
-    test_result = detector.test(source_path=test_image_dir)
+    test_result, timestamp = detector.test(source_path=test_image_dir)
 
-    to_submission_format(test_result)
+    to_submission_format(test_result, timestamp)
