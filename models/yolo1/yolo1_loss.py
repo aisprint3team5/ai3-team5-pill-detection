@@ -130,19 +130,19 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
         class_loss = F.cross_entropy(cls_pred_flat, target_indices, reduction='sum')
 
         # 12) 총합
-        # total_loss = ( # YOLOv1 논문대로
-        #     lambda_coord * box_loss +
-        #     obj_conf_loss +
-        #     lambda_noobj * noobj_loss +
-        #     class_loss
-        # )
-
-        total_loss = (
+        total_loss = (  # YOLOv1 논문대로
             lambda_coord * box_loss +
-            10.0 * obj_conf_loss +
-            0.2 * noobj_loss +
-            5.0 * class_loss
+            obj_conf_loss +
+            lambda_noobj * noobj_loss +
+            class_loss
         )
+
+        # total_loss = (
+        #     lambda_coord * box_loss +
+        #     10.0 * obj_conf_loss +
+        #     0.2 * noobj_loss +
+        #     5.0 * class_loss
+        # )
 
         batch_size = predictions.size(0)
         # return total_loss / batch_size  # 배치 사이즈로 나눠준다.
