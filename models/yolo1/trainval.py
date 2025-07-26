@@ -11,7 +11,7 @@ def train_one_epoch(model, loader, loss_fn, optimizer, device):
     sum_total, sum_box, sum_cls, sum_dfl = 0.0, 0.0, 0.0, 0.0
     n = len(loader)
 
-    for imgs, targets, metas in tqdm(loader, desc='Train batches'):
+    for imgs, targets, metas in loader: #tqdm(loader, desc='Train batches'):
         imgs, targets = imgs.to(device), targets.to(device)
         preds = model(imgs)
         losses = loss_fn(preds, targets)
@@ -43,7 +43,7 @@ def validate(model, loader, loss_fn, device):
         n = len(loader)
 
         all_preds, all_metas = [], []
-        for imgs, targets, metas in tqdm(loader, desc='Val batches'):
+        for imgs, targets, metas in loader: #tqdm(loader, desc='Val batches'):
             imgs, targets = imgs.to(device), targets.to(device)
 
             preds = model(imgs)
