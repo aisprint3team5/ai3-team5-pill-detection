@@ -74,7 +74,7 @@ def main():
     elapsed = time.time() - start_time
     print(f'Train is completed! ({elapsed:.1f}s)')
 
-    run_sample_inference(model, val_loader)
+    # run_sample_inference(model, val_loader)
 
 
 if __name__ == '__main__':
