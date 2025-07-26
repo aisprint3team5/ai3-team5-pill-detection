@@ -19,6 +19,7 @@ def train_one_epoch(model, loader, loss_fn, optimizer, device):
 
         optimizer.zero_grad()
         losses['total_loss'].backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10)  # Yolov1에는 포함이 안되나 gradient 발산을 막기 위해서 추가함
         optimizer.step()
 
         sum_total += losses['total_loss'].item()
