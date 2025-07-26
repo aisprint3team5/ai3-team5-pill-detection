@@ -50,6 +50,7 @@ def add_csv_log(csv_path, epoch, epoch_time, train_loss, metrics, val_loss, lrs)
 
     # 2) 한 행 생성
     row = get_info(epoch, epoch_time, train_loss, metrics, val_loss, lrs)
+    print(row)
 
     # 3) 파일 신규 생성 여부 체크
     is_new_file = not os.path.isfile(csv_path)
