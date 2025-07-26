@@ -139,8 +139,8 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
 
         total_loss = (
             lambda_coord * box_loss +
-            5.0 * obj_conf_loss +
-            lambda_noobj * noobj_loss +
+            10.0 * obj_conf_loss +
+            0.2 * noobj_loss +
             5.0 * class_loss
         )
 
