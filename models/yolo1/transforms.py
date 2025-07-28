@@ -61,6 +61,7 @@ class AlbumentationTransform:
                 label_fields=['class_labels'],
                 min_area=0,            # 최소 넓이 필터링 끄기
                 min_visibility=0.0,    # 가시성 필터링 끄기
+                check_each_transform=False
             )  # required
         )
 
