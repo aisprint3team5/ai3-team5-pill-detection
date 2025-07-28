@@ -100,9 +100,9 @@ def main():
     if len(sys.argv) == 1:
         parser.print_help()
     args = parser.parse_args()
-    results = predict_yolo11(args.project, arg.name)
+    results = predict_yolo11(args.project, args.name)
     print(results)
-    csv_path: str = os.path.join(args.project, arg.name, 'submission.csv')
+    csv_path: str = os.path.join(args.project, args.name, 'submission.csv')
     to_submission_format(results, csv_path)
 
 
