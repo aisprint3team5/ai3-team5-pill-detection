@@ -72,11 +72,10 @@ class AlbumentationTransform:
             transformed image tensor, transformed boxes tensor
         """
         # Convert PIL to np.ndarray if needed
-        # if not isinstance(image, np.ndarray):
-        #     image = np.array(image)
+        if not isinstance(image, np.ndarray):
+            image = np.array(image)
 
-        image = self.pil_resizer(image)
-        # 3) numpy array로 바꿔서 Albumentations에 전달
+        image, boxes = self.pil_resizer(image,labels, boxes)
         image = np.array(image)
         
         transformed = self.transform(image=image, bboxes=boxes, class_labels=labels)
