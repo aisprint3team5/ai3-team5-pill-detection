@@ -8,6 +8,7 @@ from torchvision.transforms import ToTensor
 from albumentations.pytorch import ToTensorV2
 import torchvision.transforms as T
 
+
 def preprocess_pill_image(img: np.ndarray) -> np.ndarray:
     '''
     Preprocesses the pill image using grayscale, CLAHE, and optional adaptive thresholding.
@@ -71,8 +72,8 @@ class AlbumentationTransform:
             transformed image tensor, transformed boxes tensor
         """
         # Convert PIL to np.ndarray if needed
-        if not isinstance(image, np.ndarray):
-            image = np.array(image)
+        # if not isinstance(image, np.ndarray):
+        #     image = np.array(image)
 
         image = self.pil_resizer(image)
         # 3) numpy array로 바꿔서 Albumentations에 전달
