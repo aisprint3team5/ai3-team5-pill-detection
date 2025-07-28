@@ -8,6 +8,7 @@ from ultralytics import YOLO
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 
+
 # ─── 1) 외부 YAML 읽어 DEFAULTS 생성 ────────────────────────────
 with open("config/yolo_11.yaml", "r", encoding="utf-8") as f:
     DEFAULTS = yaml.safe_load(f)
@@ -34,9 +35,6 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'final LR ratio (cosine scheduler)'},
     {'flags': ['--momentum'],      'type': float, 'default': DEFAULTS['momentum'],
                                      'help': 'SGD momentum (only if optimizer=SGD)'},
-    {'flags': ['--betas'],         'type': lambda s: tuple(map(float, s.split(','))),
-                                     'default': tuple(DEFAULTS['betas']),
-                                     'help': 'Adam/AdamW betas as "beta1,beta2"'},
     {'flags': ['--weight_decay'],  'type': float, 'default': DEFAULTS['weight_decay'],
                                      'help': 'weight decay (L2)'},
     {'flags': ['--warmup_epochs'], 'type': int,   'default': DEFAULTS['warmup_epochs'],
@@ -70,6 +68,9 @@ def build_parser():
     return parser
 
 
+
+
+
 def train_yolo11(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = YOLO(args.weights)
@@ -78,8 +79,6 @@ def train_yolo11(args):
     opt_kwargs = {'lr0': args.lr0, 'lrf': args.lrf, 'weight_decay': args.weight_decay}
     if args.optimizer.lower() == 'sgd':
         opt_kwargs['momentum'] = args.momentum
-    else:
-        opt_kwargs['betas'] = args.betas
 
     return model.train(
         data=args.data,
