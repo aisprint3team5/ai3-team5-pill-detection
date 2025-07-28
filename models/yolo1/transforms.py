@@ -6,9 +6,7 @@ import albumentations as A
 from PIL import Image
 from torchvision.transforms import ToTensor
 from albumentations.pytorch import ToTensorV2
-import albumentations.core.bbox_utils as _bu
 
-_bu.check = lambda *args, **kwargs: None 
 
 def preprocess_pill_image(img: np.ndarray) -> np.ndarray:
     '''
@@ -58,13 +56,7 @@ class AlbumentationTransform:
                 A.Normalize(),
                 ToTensorV2(),
             ],
-            bbox_params=A.BboxParams(
-                format='yolo',
-                label_fields=['class_labels'],
-                min_area=0,            # 최소 넓이 필터링 끄기
-                min_visibility=0.0,    # 가시성 필터링 끄기
-                check_each_transform=False
-            )  # required
+            bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels'])  # required
         )
 
     def __call__(self, image, labels, boxes):
