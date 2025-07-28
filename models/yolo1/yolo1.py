@@ -26,7 +26,7 @@ class Yolo1(nn.Module):
         (3, 1024, 1, 1)
     ]
 
-    def __init__(self, in_channels=3, S=7, B=2, C=20, conf_thresh=0.2, iou_thresh=0.4, transform=None):  # split_size=7, num_boxes=2, num_classes=20
+    def __init__(self, in_channels=3, S=7, B=2, C=20, conf_thresh=0.2, iou_thresh=0.4):  # split_size=7, num_boxes=2, num_classes=20
         super(Yolo1, self).__init__()
         self.S, self.B, self.C = S, B, C
         self.conf_thresh, self.iou_thresh = conf_thresh, iou_thresh
