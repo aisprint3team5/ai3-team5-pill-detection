@@ -9,6 +9,7 @@ from detector.hyp import hyperparameters
 
 
 class YOLOV8Detector:
+
     def __init__(self, model_file_name: str, conf_threshold: float):
         model_path = PATH.MODEL_PATH
 
@@ -18,14 +19,14 @@ class YOLOV8Detector:
 
         print(f"[DEV-INFO] Loaded model: {model_file_name}")
         print(f"[DEV-INFO] Classes: {self.model.names}")
-
-    def train(self, epochs=10, patience=5, imgsz=416, batch_size=16):
+        
+    def train(self, data_yaml_path, epochs=10, patience=5, imgsz=416, batch_size=16):
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         print(f"[DEV-INFO] Training on {PATH.YOLO_DATA_PATH}, device: {device}")
 
         self.model.train(
-            data=PATH.ROOT_DIR / "data.yaml",
+            data=data_yaml_path,
             epochs=epochs,
             # patience=patience,
             imgsz=imgsz,
