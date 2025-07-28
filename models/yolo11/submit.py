@@ -103,6 +103,7 @@ def main():
     results = predict_yolo11(args.project, args.name)
     print(results)
     csv_path: str = os.path.join(args.project, args.name, 'submission.csv')
+    print('csv_path: ', csv_path)
     to_submission_format(results, csv_path)
 
 
