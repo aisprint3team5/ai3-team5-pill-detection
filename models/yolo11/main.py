@@ -7,6 +7,8 @@ import yaml                                  # pip install pyyaml
 from ultralytics import YOLO
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
+import torch.optim as optim
+
 
 # ─── 1) 외부 YAML 읽어 DEFAULTS 생성 ────────────────────────────
 with open("config/yolo_11.yaml", "r", encoding="utf-8") as f:
@@ -78,8 +80,16 @@ def train_yolo11(args):
     opt_kwargs = {'lr0': args.lr0, 'lrf': args.lrf, 'weight_decay': args.weight_decay}
     if args.optimizer.lower() == 'sgd':
         opt_kwargs['momentum'] = args.momentum
+    elif args.optimizer.lower() == 'adamw':
+        opt = optim.AdamW(
+            model.model.parameters(),
+            lr=args.lr0,
+            betas=args.betas,
+            weight_decay=args.weight_decay
+        )
+        model.trainer.optimizer = opt
     else:
-        opt_kwargs['betas'] = args.betas
+        # opt_kwargs['betas'] = args.betas
 
     return model.train(
         data=args.data,
