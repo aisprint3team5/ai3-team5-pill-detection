@@ -89,7 +89,7 @@ def train_yolo11(args):
         )
         model.trainer.optimizer = opt
     else:
-        # opt_kwargs['betas'] = args.betas
+        opt_kwargs['betas'] = args.betas
 
     return model.train(
         data=args.data,
