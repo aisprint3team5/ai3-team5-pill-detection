@@ -46,7 +46,7 @@ class PillImageTransform:
 class AlbumentationTransform:
     def __init__(self, resize=(640, 640)):
         h, w = resize
-        self.pil_resizer = PillImageTransform(resize)
+        self.pil_resizer = T.Resize(resize)
         self.transform = A.Compose(
             [
                 #A.Resize(height=h, width=w),  # 이미지 + 박스 동시 리사이즈
@@ -71,13 +71,10 @@ class AlbumentationTransform:
         Returns:
             transformed image tensor, transformed boxes tensor
         """
-        # Convert PIL to np.ndarray if needed
-        if not isinstance(image, np.ndarray):
-            image = np.array(image)
-
-        image, boxes = self.pil_resizer(image,labels, boxes)
+        if not isinstance(image, Image.Image):
+            image = Image.fromarray(image)
+        image = self.pil_resizer(image)
         image = np.array(image)
-        
         transformed = self.transform(image=image, bboxes=boxes, class_labels=labels)
 
         bboxes = transformed['bboxes']
