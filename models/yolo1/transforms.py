@@ -56,7 +56,12 @@ class AlbumentationTransform:
                 A.Normalize(),
                 ToTensorV2(),
             ],
-            bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels'])  # required
+            bbox_params=A.BboxParams(
+                format='yolo',
+                label_fields=['class_labels'],
+                min_area=0,            # 최소 넓이 필터링 끄기
+                min_visibility=0.0,    # 가시성 필터링 끄기
+            )  # required
         )
 
     def __call__(self, image, labels, boxes):
