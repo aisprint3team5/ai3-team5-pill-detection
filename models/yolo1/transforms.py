@@ -73,4 +73,14 @@ class AlbumentationTransform:
         if not isinstance(image, np.ndarray):
             image = np.array(image)
         transformed = self.transform(image=image, bboxes=boxes, class_labels=labels)
-        return transformed['image'], transformed['bboxes']
+
+        bboxes = transformed['bboxes']
+        clamped_boxes: list[list[float]] = []
+        for x_c, y_c, bw, bh in bboxes:
+            x_c: float = float(np.clip(x_c, 0.0, 1.0))
+            y_c: float = float(np.clip(y_c, 0.0, 1.0))
+            bw: float = float(np.clip(bw, 0.0, 1.0))
+            bh: float = float(np.clip(bh, 0.0, 1.0))
+            clamped_boxes.append([x_c, y_c, bw, bh])
+
+        return transformed['image'], clamped_boxes
