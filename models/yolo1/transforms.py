@@ -46,7 +46,7 @@ class PillImageTransform:
 class AlbumentationTransform:
     def __init__(self, resize=(640, 640)):
         h, w = resize
-        self.pil_resizer = T.Resize(resize)
+        self.pil_resizer = PillImageTransform(resize)
         self.transform = A.Compose(
             [
                 #A.Resize(height=h, width=w),  # 이미지 + 박스 동시 리사이즈
