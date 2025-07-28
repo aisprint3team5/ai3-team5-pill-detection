@@ -1,0 +1,11 @@
+#model: yolov8m.pt           # 사용할 사전학습 모델
+train_data_yaml: 'data.yaml'
+
+# 학습 스케쥴
+epochs: 100
+patience: 15
+image_size: 416 # [576, 960]
+batch_size: 32
+
+conf_threshold: 0.5
+iou_threshold: 0.4

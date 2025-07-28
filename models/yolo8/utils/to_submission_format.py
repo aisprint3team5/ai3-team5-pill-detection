@@ -48,6 +48,7 @@ def to_submission_format(model_results, test_start_timestamp):
 
     # image_id 기준 정렬
     df = pd.DataFrame(data)
+    print(df.columns)
     df = df.sort_values(by="image_id").reset_index(drop=True)
 
     # annotation_id 재부여 (1부터 시작)

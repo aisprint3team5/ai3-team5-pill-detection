@@ -6,8 +6,7 @@ iou_threshold: 0.4
 
 train_data_yaml: 'data.yaml'
 
-epochs: 5
+epochs: 100
 patience: 5
 image_size: 416
 batch_size: 16
-test_image_dir: "data/raw/test_images" # 테스트할 이미지 경로
