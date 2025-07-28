@@ -21,6 +21,8 @@ def build_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     # 프로젝트/이름
+    parser.add_argument('--test_images_dir', type=str, default=DEFAULTS['test_images_dir'],
+                        help='test images dir')
     parser.add_argument('--project', type=str, default=DEFAULTS['project'],
                         help='save results to project/name')
     parser.add_argument('--name',    type=str, required=True, default=DEFAULTS['name'],
@@ -28,14 +30,14 @@ def build_parser():
     return parser
 
 
-def predict_yolo11(project, name, device):
+def predict_yolo11(project, name, test_images_dir, device):
     model_path: str = os.path.join(project, name, 'weights', 'best.pt')
     model = YOLO(model_path)
 
     print(f"[INFO] Running test on: {name}")
 
     results = model.predict(
-        source=DEFAULTS['test_images_dir'],  # 테스트할 이미지 또는 폴더 경로
+        source=test_images_dir,  # 테스트할 이미지 또는 폴더 경로
         conf=0.25,        # 필요시 인자 추가 가능
         save=True,
         save_txt=True,
@@ -100,7 +102,7 @@ def main():
     if len(sys.argv) == 1:
         parser.print_help()
     args = parser.parse_args()
-    results = predict_yolo11(args.project, args.name, device)
+    results = predict_yolo11(args.project, args.name, args.test_images_dir, device)
     print(results)
     csv_path: str = os.path.join(args.project, args.name, 'submission.csv')
     print('csv_path: ', csv_path)
