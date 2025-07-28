@@ -46,6 +46,18 @@ class PillYoloDataset(Dataset):
         self.image_files = sorted([f for f in os.listdir(image_dir)
                                    if f.lower().endswith(('.jpg', '.png'))])
 
+        print(len(self.image_files))
+        image_files = []
+        for name in self.image_files:
+            if name == 'K-001900-016551-019607-027926_0_2_0_2_75_000_200.png':
+                continue
+            if name == 'K-003351-016262-018357_0_2_0_2_75_000_200.png':
+                continue
+            image_files.append(name)
+        self.image_files = image_files
+        print(len(self.image_files))
+
+
     def __len__(self):
         return len(self.image_files)
 
