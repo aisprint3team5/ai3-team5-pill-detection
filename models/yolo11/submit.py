@@ -41,7 +41,7 @@ def predict_yolo11(project, name, device):
         save_txt=True,
         save_conf=True,
         project=project,
-        name=name,
+        name=f'images/{name}',
         exist_ok=True,
         device=device,
     )
