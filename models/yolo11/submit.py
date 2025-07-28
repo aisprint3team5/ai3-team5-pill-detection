@@ -28,10 +28,9 @@ def build_parser():
     return parser
 
 
-def predict_yolo11(project, name):
+def predict_yolo11(project, name, device):
     model_path: str = os.path.join(project, name, 'weights', 'best.pt')
     model = YOLO(model_path)
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     print(f"[INFO] Running test on: {name}")
 
@@ -49,7 +48,7 @@ def predict_yolo11(project, name):
     return results
 
 
-def to_submission_format(model_results, csv_save_path="runs/predictions/test_predictions.csv"):
+def to_submission_format(model_results, csv_save_path, category_ids):
     # 결과 수집용 리스트
     data = []
     annotation_id = 1  # annotation_id는 1부터 시작
@@ -75,7 +74,7 @@ def to_submission_format(model_results, csv_save_path="runs/predictions/test_pre
             data.append({
                 'annotation_id': annotation_id,
                 'image_id': image_id,
-                'category_id': cls_id,
+                'category_id': category_ids[cls_id],
                 'bbox_x': int(x1),
                 'bbox_y': int(y1),
                 'bbox_w': int(bbox_w),
@@ -94,17 +93,23 @@ def to_submission_format(model_results, csv_save_path="runs/predictions/test_pre
     print(f"제출 포맷으로 결과 저장 완료: {csv_save_path}")
 
 
-def main():
+def main():  
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
     parser = build_parser()
     # 아무 인자 없이 실행 시 도움말 출력
     if len(sys.argv) == 1:
         parser.print_help()
     args = parser.parse_args()
-    results = predict_yolo11(args.project, args.name)
+    results = predict_yolo11(args.project, args.name, device)
     print(results)
     csv_path: str = os.path.join(args.project, args.name, 'submission.csv')
     print('csv_path: ', csv_path)
-    to_submission_format(results, csv_path)
+
+    # Category IDs 가져오기 (index가 class 임)
+    with open('category_id.yaml', 'r', encoding='utf-8') as f:
+        category_ids = yaml.safe_load(f).get('category_ids', [])
+
+    to_submission_format(results, csv_path, category_ids)
 
 
 if __name__ == '__main__':
