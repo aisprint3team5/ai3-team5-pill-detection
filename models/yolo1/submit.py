@@ -34,7 +34,7 @@ def main():
 
     # 5) Category IDs 가져오기 (index가 class 임)
     with open('category_id.yaml', 'r', encoding='utf-8') as f:
-        category_ids = torch.tensor(yaml.safe_load(f).get('category_ids', []), dtype=torch.long)
+        category_ids = torch.tensor(yaml.safe_load(f).get('category_ids', []), dtype=torch.long).to(Config.DEVICE)
 
     # 6) Test Dataloader 가져오기
     test_loader = load_test_loaders()

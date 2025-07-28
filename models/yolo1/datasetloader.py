@@ -4,7 +4,7 @@ from PIL import Image
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data import Dataset, DataLoader, random_split
 from config import Config
-from transforms import PillImageTransform
+from transforms import PillImageTransform, AlbumentationTransform
 
 
 IS_DEV = False
@@ -68,9 +68,9 @@ class PillYoloDataset(Dataset):
                         boxes.append([x_c, y_c, bw, bh])
                         labels.append(int(cls_id))
 
-        # 3) Image-only transform (boxes는 변형되지 않음)
+        # 3) Image-only transform (PillImageTransform boxes는 변형되지 않음)
         if self.transform:
-            img = self.transform(img)
+            img, boxes = self.transform(img, labels, boxes)
 
         # 4) 타깃 텐서 생성: [S, S, 5*B + C]
         if not self.test:
@@ -128,11 +128,15 @@ class PillYoloDataset(Dataset):
 def load_loaders():
     # print(Config.TRAIN_IMAGES_DIR, Config.TRAIN_LABELS_DIR)
     # print(Config.VAL_IMAGES_DIR, Config.VAL_LABELS_DIR)
-    transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE)) # PillImageTransform AlbumentationTransform
+    base_transform = PillImageTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    if Config.AUGMENT:
+        train_transform = AlbumentationTransform(resize=(Config.IMAGE_SIZE, Config.IMAGE_SIZE))
+    else:
+        train_transform = base_transform
     train_ds = PillYoloDataset(image_dir=Config.TRAIN_IMAGES_DIR, label_dir=Config.TRAIN_LABELS_DIR,
-                               S=Config.S, B=Config.B, C=Config.C, transform=transform)
+                               S=Config.S, B=Config.B, C=Config.C, transform=train_transform)
     val_ds = PillYoloDataset(image_dir=Config.VAL_IMAGES_DIR, label_dir=Config.VAL_LABELS_DIR,
-                             S=Config.S, B=Config.B, C=Config.C, transform=transform)
+                             S=Config.S, B=Config.B, C=Config.C, transform=base_transform)
     if IS_DEV:
         # train_ds, _ = random_split(train_ds, [DEV_TOTAL_SIZE, len(train_ds)-DEV_TOTAL_SIZE])
         val_ds, _ = random_split(val_ds,   [DEV_TOTAL_SIZE, len(val_ds)-DEV_TOTAL_SIZE])

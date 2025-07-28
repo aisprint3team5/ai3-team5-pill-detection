@@ -11,7 +11,7 @@ def train_one_epoch(model, loader, loss_fn, optimizer, device):
     sum_total, sum_box, sum_cls, sum_dfl = 0.0, 0.0, 0.0, 0.0
     n = len(loader)
 
-    for imgs, targets, metas in tqdm(loader, desc='Train batches'):
+    for imgs, targets, metas in loader: #tqdm(loader, desc='Train batches'):
         imgs, targets = imgs.to(device), targets.to(device)
         preds = model(imgs)
         losses = loss_fn(preds, targets)
@@ -19,6 +19,7 @@ def train_one_epoch(model, loader, loss_fn, optimizer, device):
 
         optimizer.zero_grad()
         losses['total_loss'].backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=20)  # Yolov1에는 포함이 안되나 gradient 발산을 막기 위해서 추가함
         optimizer.step()
 
         sum_total += losses['total_loss'].item()
@@ -42,7 +43,7 @@ def validate(model, loader, loss_fn, device):
         n = len(loader)
 
         all_preds, all_metas = [], []
-        for imgs, targets, metas in tqdm(loader, desc='Val batches'):
+        for imgs, targets, metas in loader: #tqdm(loader, desc='Val batches'):
             imgs, targets = imgs.to(device), targets.to(device)
 
             preds = model(imgs)

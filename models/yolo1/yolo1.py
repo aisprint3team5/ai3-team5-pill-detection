@@ -59,7 +59,7 @@ class Yolo1(nn.Module):
             preds[..., off+4:off+5] = torch.sigmoid(preds[..., off+4:off+5])
 
         # class logits → softmax
-        preds[..., 5*self.B:] = F.softmax(preds[..., 5*self.B:], dim=-1)
+        # preds[..., 5*self.B:] = F.softmax(preds[..., 5*self.B:], dim=-1) # Yolov1 논문에는 원래 존재하나 loss 함수에서 이미 사용하므로 여기서는 softmax를 또 적용하지 않는다.
         return preds
 
     @staticmethod

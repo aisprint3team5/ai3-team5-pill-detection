@@ -51,6 +51,7 @@ class Config:
         'weight_decay':   'WD',
         'conf_thresh':    'CONF_THRESH',
         'nms_iou_thresh': 'NMS_IOU_THRESH',
+        'augment':        'AUGMENT',
         'project':        'PROJECT',
         'name':           'NAME',
         'device':         'DEVICE',   # defaults.yaml에 넣어도, load 마지막에 자동 세팅해도 OK
