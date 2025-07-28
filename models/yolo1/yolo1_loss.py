@@ -112,7 +112,7 @@ def Yolo1Loss(S, B, C, lambda_coord=5.0, lambda_noobj=0.5):
         # 11) Class probability loss (channels 10~10+C): from MSE -> CrossEntropy (11-1 ~ 11-4)
         cls_pred = preds[..., 10:10+C]
         cls_target = target[..., 10:10+C]
-        # class_loss = torch.sum((exists_box * (cls_pred - cls_target)) ** 2) # YOLOv1 오리지널 구현(MSE)
+        # class_loss = torch.sum((exists_box * (cls_pred - cls_target)) ** 2)  # YOLOv1 오리지널 구현(MSE)
 
         # 11-1) object가 있는 셀만 골라내기
         # exists_box: (batch, S, S, 1) → mask: (batch, S, S)
