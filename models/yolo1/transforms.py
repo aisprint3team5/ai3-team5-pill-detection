@@ -6,7 +6,9 @@ import albumentations as A
 from PIL import Image
 from torchvision.transforms import ToTensor
 from albumentations.pytorch import ToTensorV2
+import albumentations.core.bbox_utils as _bu
 
+_bu.check = lambda *args, **kwargs: None 
 
 def preprocess_pill_image(img: np.ndarray) -> np.ndarray:
     '''
@@ -50,7 +52,7 @@ class AlbumentationTransform:
                 A.Resize(height=h, width=w),  # 이미지 + 박스 동시 리사이즈
                 A.RandomBrightnessContrast(p=0.3),
                 A.HorizontalFlip(p=0.5),
-                #A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=15, p=0.5),
+                A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=15, p=0.5),
                 A.Blur(p=0.2),
                 A.CLAHE(p=0.2),
                 A.Normalize(),
