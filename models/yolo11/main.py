@@ -77,6 +77,15 @@ def train_yolo11(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = YOLO(args.weights)
 
+    for idx, module in enumerate(model.model.model):
+        # 백본에 해당하는 0~10번 레이어만 requires_grad=False
+        if idx <= 10:
+            for p in module.parameters():
+                p.requires_grad = False
+        else:
+            for p in module.parameters():
+                p.requires_grad = True
+
     # optimizer별 옵션 분기
     opt_kwargs = {'lr0': args.lr0, 'lrf': args.lrf, 'weight_decay': args.weight_decay}
     if args.optimizer.lower() == 'sgd':
