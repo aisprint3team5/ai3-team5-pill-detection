@@ -91,7 +91,7 @@ def train_yolo11(args):
     if args.optimizer.lower() == 'sgd':
         opt_kwargs['momentum'] = args.momentum
 
-    return model.train(
+    model.train(
         data=args.data,
         epochs=args.epochs,
         batch=args.batch,
@@ -99,6 +99,29 @@ def train_yolo11(args):
         optimizer=args.optimizer,
         device=device,
         warmup_epochs=args.warmup_epochs,
+        patience=args.patience,
+        augment=args.augment,
+        project=args.project,
+        name=args.name,
+        **opt_kwargs
+    )
+
+    # Unfreeze
+    for idx, module in enumerate(model.model.model):
+        for p in module.parameters():
+            p.requires_grad = True
+
+    opt_kwargs['lr0'] = args.lr0 * args.lrf
+    opt_kwargs['lrf'] = 0.1
+
+    return model.train(
+        data=args.data,
+        epochs=20,
+        batch=args.batch,
+        imgsz=args.imgsz,
+        optimizer=args.optimizer,
+        device=device,
+        warmup_epochs=0,
         patience=args.patience,
         augment=args.augment,
         project=args.project,
