@@ -7,6 +7,11 @@ paths:
   yolo_val_dir: data/yolo_split/val/images
   yolo_val_label: data/yolo_split/val/labels
   yolo_val_new_label: data/yolo_split/val/new_labels  ### @TO DO: Delete
+  
+  yolo_all_dir: data/yolo_split/all/images
+  yolo_all_label: data/yolo_split/all/labels
+  yolo_all_new_label: data/yolo_split/all/new_labels 
+
 
   original_dataset: data/raw
   data_dir: data
@@ -16,5 +21,4 @@ paths:
   db_path: script/db/pill_metadata.db
   pickle_path: cache/parsed_dataset.pkl
   class_names_path: data/class_names.txt
-  mine_dir: data/yolo_split/train/mine
-  test_dir: data/yolo_split/train/testforme
+ 

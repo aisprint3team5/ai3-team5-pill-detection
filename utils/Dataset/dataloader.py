@@ -29,8 +29,8 @@ def convert_to_yolo(dataset, class_name_to_id, image_root_dir, output_img_dir, o
            output_img_dir (str or Path): Directory to save YOLO images.
            output_label_dir (str or Path): Directory to save YOLO-format label files.
        """
-    # os.makedirs(output_img_dir, exist_ok=True)
-    # os.makedirs(output_label_dir, exist_ok=True)
+    os.makedirs(output_img_dir, exist_ok=True)
+    os.makedirs(output_label_dir, exist_ok=True)
 
     # # Build class_id map
     # all_class_names = set()
@@ -79,7 +79,7 @@ def convert_to_yolo(dataset, class_name_to_id, image_root_dir, output_img_dir, o
         with open(label_path, "w") as f:
             f.write("\n".join(label_lines))
 
-        print(f"[Saved] {image_filename} -> YOLO format with {len(label_lines)} boxes")
+        #print(f"[Saved] {image_filename} -> YOLO format with {len(label_lines)} boxes")
 
 
     if not os.path.exists(CLASS_FILE):
@@ -191,51 +191,6 @@ def get_all_annotation_files(root_folder):
                 json_files.append(os.path.join(root, file))
     return json_files
 
-# def analyze_pill_annotations(json_paths):
-#     records = []
-#     for path in tqdm(json_paths, desc="Parsing JSON files"):
-#         with open(path, 'r', encoding='utf-8') as f:
-#             data = json.load(f)
-#
-#         image_info = {img["id"]: img for img in data.get("images", [])}
-#         categories = {cat["id"]: cat["name"] for cat in data.get("categories", [])}
-#
-#         for ann in data.get("annotations", []):
-#             img = image_info.get(ann["image_id"], {})
-#             if not img:
-#                 continue
-#
-#             record = {
-#                 "file_name": img.get("file_name"),
-#                 "width": img.get("width"),
-#                 "height": img.get("height"),
-#                 "camera_la": img.get("camera_la"),
-#                 "camera_lo": img.get("camera_lo"),
-#                 "size": img.get("size"),
-#                 "drug_S": img.get("drug_S"),
-#                 "dl_name": img.get("dl_name"),
-#                 "dl_name_en": img.get("dl_name_en"),
-#                 "di_class_no": img.get("di_class_no"),
-#                 "drug_shape": img.get("drug_shape", None),
-#                 "thick": img.get("thick", None),
-#                 "leng_short":  img.get("leng_short", None),
-#                 "leng_long":  img.get("leng_long", None),
-#                 "back_color": img.get("back_color"),
-#                 "drug_dir": img.get("drug_dir"),
-#                 "light_color": img.get("light_color"),
-#                 "bbox_x": ann["bbox"][0],
-#                 "bbox_y": ann["bbox"][1],
-#                 "bbox_w": ann["bbox"][2],
-#                 "bbox_h": ann["bbox"][3],
-#                 "bbox_area": ann["bbox"][2] * ann["bbox"][3],
-#                 "category_id": ann["category_id"],
-#                 "category_name": categories.get(ann["category_id"], "Unknown")
-#             }
-#             records.append(record)
-#
-#     df = pd.DataFrame(records)
-#
-#     return df
 
 def load_training_data(image_dir, annotation_root):
     """
@@ -324,3 +279,4 @@ def explore_dataset(data, limit=5, draw_bbox=True):
         count += 1
         if count >= limit:
             break
+

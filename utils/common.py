@@ -8,6 +8,16 @@ import shutil
 from typing import Tuple
 import sqlite3
 import cv2
+import numpy as np
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
+import json
+from collections import Counter
+from PIL import Image, ImageDraw, ImageFont
+
+import uuid
+
 COMPETITION = "ai03-level1-project"
 
 def is_data_downloaded(data_dir):
@@ -148,7 +158,6 @@ def load_class_name_map(txt_path):
             idx = int(idx_str.strip())
             class_map[idx] = name.strip()
     return class_map
-from PIL import Image, ImageDraw, ImageFont
 def draw_bboxes_on_images(image_dir, label_dir, output_dir, class_name_map=None):
     image_dir = Path(image_dir)
     label_dir = Path(label_dir)
@@ -195,38 +204,6 @@ def draw_bboxes_on_images(image_dir, label_dir, output_dir, class_name_map=None)
         save_path = output_dir / image_file.name
         image.save(save_path)
 
-# def draw_bboxes_on_images(image_dir, label_dir, output_dir, class_name_map=None):
-#     os.makedirs(output_dir, exist_ok=True)
-#     image_files = [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png'))]
-
-#     for image_file in image_files:
-#         image_path = os.path.join(image_dir, image_file)
-#         label_path = os.path.join(label_dir, os.path.splitext(image_file)[0] + '.txt')
-
-#         image = cv2.imread(image_path)
-#         h, w = image.shape[:2]
-
-#         if not os.path.exists(label_path):
-#             print(f"[Warning] No label found for {image_file}")
-#             continue
-
-#         with open(label_path, 'r') as f:
-#             for line in f.readlines():
-#                 cls_id, x_center, y_center, box_w, box_h = map(float, line.strip().split())
-
-#                 # Convert YOLO format to pixel coordinates
-#                 x1 = int((x_center - box_w / 2) * w)
-#                 y1 = int((y_center - box_h / 2) * h)
-#                 x2 = int((x_center + box_w / 2) * w)
-#                 y2 = int((y_center + box_h / 2) * h)
-
-#                 # Draw rectangle and label
-#                 cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-#                 label = f"{class_name_map[int(cls_id)]}" if class_name_map else str(int(cls_id))
-#                 cv2.putText(image, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36,255,12), 2)
-
-#         output_path = os.path.join(output_dir, image_file)
-#         cv2.imwrite(output_path, image)
 
 
 def merge_labels_with_db(
@@ -313,3 +290,170 @@ def move_files(split_data, split_name,INPUT_IMAGE_DIR,INPUT_LABEL_DIR,OUTPUT_DIR
 
         shutil.copy(image_path, out_img_path)
         shutil.copy(label_path, out_lbl_path)
+
+
+def augment_dataset(image_dir, label_dir, output_image_dir, output_label_dir, class_map_path=None, augmentations_per_image=3, rare_boost_factor=2):
+    os.makedirs(output_image_dir, exist_ok=True)
+    os.makedirs(output_label_dir, exist_ok=True)
+
+    class_counter = Counter()
+    label_files = [f for f in os.listdir(label_dir) if f.endswith('.txt')]
+    for label_file in label_files:
+        with open(os.path.join(label_dir, label_file)) as f:
+            for line in f:
+                if line.strip():
+                    class_id = int(line.strip().split()[0])
+                    class_counter[class_id] += 1
+
+    # Define rare classes
+    avg_count = sum(class_counter.values()) / len(class_counter)
+    rare_classes = [cls for cls, count in class_counter.items() if count < avg_count * 0.4]
+    print(f"[INFO] Rare classes (boosted): {rare_classes}")
+
+    transform = A.Compose([
+        A.RandomResizedCrop(size=(640, 640), scale=(0.85, 1.0), ratio=(0.75, 1.33), p=0.5),
+        A.HorizontalFlip(p=0.5),
+        A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=10, p=0.5),
+       # A.RandomBrightnessContrast(p=0.2),
+       # A.HueSaturationValue(p=0.3),
+       # A.RGBShift(p=0.3),
+       # A.CLAHE(p=0.2),
+        A.Blur(p=0.1),
+    ], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
+
+    for fname in os.listdir(image_dir):
+        if not fname.endswith(".png"):
+            continue
+
+        base_name = os.path.splitext(fname)[0]
+        image_path = os.path.join(image_dir, fname)
+        label_path = os.path.join(label_dir, base_name + ".txt")
+
+        if not os.path.exists(label_path):
+            print(f"[!] Missing label: {label_path}")
+            continue
+
+        # Read image and labels
+        image = cv2.imread(image_path)
+        if image is None:
+            print(f"[!] Could not read image: {image_path}")
+            continue
+        height, width = image.shape[:2]
+
+        with open(label_path, "r") as f:
+            lines = f.read().strip().splitlines()
+
+        if not lines:
+            continue  # skip if empty label
+
+        bboxes = []
+        class_labels = []
+        for line in lines:
+            parts = line.strip().split()
+            class_id = int(parts[0])
+            bbox = list(map(float, parts[1:5]))
+            class_labels.append(class_id)
+            bboxes.append(bbox)
+
+        # rare class
+        contains_rare = any(c in rare_classes for c in class_labels)
+        n_aug = augmentations_per_image * rare_boost_factor if contains_rare else augmentations_per_image
+
+    
+        for i in range(n_aug):
+            try:
+                transformed = transform(image=image, bboxes=bboxes, class_labels=class_labels)
+                transformed_image = transformed['image']
+                transformed_bboxes = transformed['bboxes']
+                transformed_labels = transformed['class_labels']
+
+                # Save new image with new name 
+                out_img_name = f"{base_name}_aug{i}.png"
+                out_lbl_name = f"{base_name}_aug{i}.txt"
+
+                out_img_path = os.path.join(output_image_dir, out_img_name)
+                out_lbl_path = os.path.join(output_label_dir, out_lbl_name)
+
+                cv2.imwrite(out_img_path, transformed_image)
+
+                with open(out_lbl_path, "w") as f:
+                    for cid, box in zip(transformed_labels, transformed_bboxes):
+                        cid = int(cid)  
+                        x, y, w, h = [str(np.clip(coord, 0.0, 1.0)) for coord in box]
+                        f.write(f"{cid} {x} {y} {w} {h}\n")
+
+                print(f"Augmented: {out_img_name} (Rare={contains_rare})")
+
+            except Exception as e:
+                print(f"Failed on {fname} (i={i}): {e}")
+                continue
+
+def check_image_label_consistency(image_dir, label_dir, class_map_path, report_path="mismatched_files.txt"):
+    with open(class_map_path, 'r') as f:
+        class_map = json.load(f)
+
+    class_id_to_label_id = {}
+    for label_id_str, entry in class_map.items():
+        class_id = str(entry["class_id"]).zfill(6)
+        class_id_to_label_id[class_id] = label_id_str  # YOLO label IDs are strings
+
+    mismatches = []
+    for fname in os.listdir(label_dir):
+        if not fname.endswith(".txt"):
+            continue
+
+        label_path = os.path.join(label_dir, fname)
+        base_name = os.path.splitext(fname)[0]
+        image_path = os.path.join(image_dir, base_name + '.png')
+
+        # 1. Extract class_ids from filename
+        raw_ids = extract_category_ids_from_filename(fname)
+
+        # 2. Convert class_ids to YOLO label IDs
+        try:
+            expected_label_ids = [class_id_to_label_id[cat_id] for cat_id in raw_ids]
+        except KeyError as e:
+            print(f"[!] Class ID {e} not found in class_map.json for file {fname}")
+            continue
+
+        # 3. Read actual YOLO label file
+        with open(label_path, 'r') as f:
+            label_lines = [line.strip() for line in f if line.strip()]
+            actual_label_ids = [line.split()[0] for line in label_lines]
+
+        # 4. Compare sorted sets (order doesn't matter)
+        if sorted(actual_label_ids) != sorted(expected_label_ids):
+            mismatches.append((fname, expected_label_ids, actual_label_ids))
+
+             # Delete mismatched files
+            try:
+                os.remove(image_path)
+                os.remove(label_path)
+                print(f"[✓] Deleted mismatched files: {fname}")
+            except Exception as e:
+                print(f"[!] Error deleting files for {fname}: {e}")
+
+    # Save mismatch report
+    if mismatches:
+        with open(report_path, "w", encoding="utf-8") as f:
+            for fname, expected, actual in mismatches:
+                f.write(f"{fname} | expected: {expected} | actual: {actual}\n")
+        print(f"\n[✓] Mismatch report saved to: {report_path}")
+    else:
+        print("\n[✓] No mismatches found.")
+
+def merge_into_folder_a(folder_a, folder_b):
+    """
+    Merge folder_b into folder_a.
+    Files from folder_b will overwrite any conflicting files in folder_a.
+    """
+    if not os.path.exists(folder_a):
+        raise FileNotFoundError(f"folder_a '{folder_a}' does not exist.")
+    if not os.path.exists(folder_b):
+        raise FileNotFoundError(f"folder_b '{folder_b}' does not exist.")
+
+    for fname in os.listdir(folder_b):
+        src_path = os.path.join(folder_b, fname)
+        dest_path = os.path.join(folder_a, fname)
+        if os.path.isfile(src_path):
+            shutil.copy2(src_path, dest_path)  # Overwrites if exists
