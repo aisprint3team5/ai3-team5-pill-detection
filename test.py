@@ -60,7 +60,9 @@ def main():
     parser = argparse.ArgumentParser(description="YOLO Training Utility")
 
     parser.add_argument('--augment', action='store_true', help="Run data augmentation pipeline")
-    parser.add_argument('--annotation', action='store_true', help="Run annotation consistency check")
+    parser.add_argument('--consistency', action='store_true', help="Run annotation consistency check")
+
+    parser.add_argument('--annotation', action='store_true', help="Run merge new annotation into folder")
     args = parser.parse_args()
 
     create_db(CONFIG_DB_PATH)
@@ -101,7 +103,7 @@ def main():
     # # #
     
     if args.annotation:
-        merge_into_folder_a(CONFIG_INPUT_LABEL_DIR, CONFIG_TRAIN_NEW_LABEL)
+        merge_into_folder(CONFIG_INPUT_LABEL_DIR, CONFIG_OUTPUT_DIR)
 
     if args.consistency:
         print("Checking annotation consistency...")
