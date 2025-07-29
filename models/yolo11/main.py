@@ -39,6 +39,8 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'weight decay (L2)'},
     {'flags': ['--warmup_epochs'], 'type': int,   'default': DEFAULTS['warmup_epochs'],
                                      'help': 'number of warmup epochs'},
+    {'flags': ['--patience'], 'type': int,   'default': DEFAULTS['patience'],
+                                     'help': 'patience'},
 ]
 
 
@@ -88,6 +90,7 @@ def train_yolo11(args):
         optimizer=args.optimizer,
         device=device,
         warmup_epochs=args.warmup_epochs,
+        patience=args.patience,
         augment=args.augment,
         project=args.project,
         name=args.name,
