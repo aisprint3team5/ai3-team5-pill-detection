@@ -158,3 +158,6 @@ conda env update --file env.yml --name venv --prune
 
 결과보고서: 구글독스 - https://docs.google.com/document/d/1WCKceTCVSP8zsMNgPon_UZc9KL3-VRMwQ8tyBENIKg0/edit?usp=sharing
 또는 root 위치
+[ai03기 5팀_경구약제 이미지 객체 검출 프로젝트 보고서.pdf](https://github.com/user-attachments/files/21506857/ai03.5._.pdf)
+
+
