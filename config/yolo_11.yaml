@@ -9,6 +9,9 @@ epochs:        50
 batch:         16
 imgsz:         640
 
+# 전이 학습 옵션
+transfer_learning: false
+
 # Optimizer 설정
 optimizer:     "AdamW"      # ["SGD","Adam","AdamW"]
 lr0:           0.01
