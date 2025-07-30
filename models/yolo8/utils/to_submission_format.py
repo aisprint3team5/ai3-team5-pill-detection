@@ -3,17 +3,20 @@ import pandas as pd
 import asyncio
 from utils.build_class_id_map import build_class_id_map
 import config.path as PATH
+import json
 
 def to_submission_format(model_results, test_start_timestamp):
     data = []
     annotation_dir = PATH.TRAIN_ANNOTATION_DIR
-    
-    # category_map, yolo_class_names 생성
-    category_map, yolo_class_names = asyncio.run(build_class_id_map(annotation_dir))
-    name_to_category_id = {v: k for k, v in category_map.items()}
+    class_map_path = PATH.CLASS_MAP_PATH
+
+    # category_map
+    with open(class_map_path, "r", encoding="utf-8") as f:
+        class_map = json.load(f)
+
+    # YOLO class_id (int) → 제출용 class_id 매핑 dict 생성
     yolo_cls_to_category_id = {
-        i: name_to_category_id.get(name, -1)
-        for i, name in enumerate(yolo_class_names)
+        int(k): v["class_id"] for k, v in class_map.items()
     }
 
     # YOLO 결과 → 리스트 저장
@@ -43,7 +46,7 @@ def to_submission_format(model_results, test_start_timestamp):
                 'bbox_y': int(y1),
                 'bbox_w': int(w),
                 'bbox_h': int(h),
-                'score': round(conf, 2)
+                'score': round(conf, 4)
             })
 
     # image_id 기준 정렬

@@ -16,6 +16,9 @@ YOLO_DATA_PATH = ROOT_DIR / "data.yaml"
 
 MODEL_PATH = RUN_DIR / "weight"  # 기본 모델 경로, 필요시 변경 가능
 
+# 클래스 맵핑
+CLASS_MAP_PATH = ROOT_DIR / "config" / "class_map.json"
+
 
 # 임시
 TEMP_IMAGES = ROOT_DIR / "data" / "temp" / "yolo_split" / "train" / "images"

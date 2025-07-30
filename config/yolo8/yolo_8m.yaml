@@ -2,10 +2,10 @@
 train_data_yaml: 'data.yaml'
 
 # 학습 스케쥴
-epochs: 100
+epochs: 50
 patience: 15
-image_size: 416 # [576, 960]
+image_size: 640 # [576, 960]
 batch_size: 32
 
-conf_threshold: 0.5
+conf_threshold: 0.6
 iou_threshold: 0.4
