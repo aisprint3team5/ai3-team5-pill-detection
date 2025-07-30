@@ -75,5 +75,5 @@ names:
 - 플라빅스정 75mg
 nc: 73
 path: data/yolo_split
-train: train/images
+train: /train/images
 val: /val/images
