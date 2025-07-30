@@ -1,1 +1,0 @@
-# PaddleOCR 로직
