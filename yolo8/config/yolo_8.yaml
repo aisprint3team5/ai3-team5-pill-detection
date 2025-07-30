@@ -1,0 +1,24 @@
+# TODO 테스트 이미지 들어있는 경로로 수정 필요
+model: yolov8n.pt           # 사용할 사전학습 모델
+conf_threshold: 0.5
+iou_threshold: 0.4
+
+# data.yaml 파일 작성
+# TODO 각 하이퍼파라미터 값 변경
+# TODO test 이미지 경로 입력
+# 학습 설정
+train_data_yaml:  ../data.yaml
+epochs: 50
+patience: 5
+image_size: 416
+batch_size: 16
+test_image_dir: "../../data/raw/test_images" # 테스트할 이미지 경로
+run_save_path: "runs/"
+
+# # TODO: train/val split 디렉토리 설정
+# # train / labels 디렉토리 설정
+# train_images_dir: "YOLO_dataset/images" # train image 파일 경로
+# train_labels_dir: "YOLO_dataset/labels" # label image 파일 경로
+
+# # tran/val split이 저장될 경로
+# output_dir: "split_dataset/" # train/val split 디렉토리는 여기에 생김
