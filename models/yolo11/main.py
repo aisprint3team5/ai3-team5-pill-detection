@@ -76,7 +76,7 @@ def train_yolo11(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = YOLO(args.weights)
 
-    print('tf: ', args.transfer_learning)
+    print('transfer learning: ', args.transfer_learning)
 
     # optimizer별 옵션 분기
     opt_kwargs = {'lr0': args.lr0, 'lrf': args.lrf, 'weight_decay': args.weight_decay}
