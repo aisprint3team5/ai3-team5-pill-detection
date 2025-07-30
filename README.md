@@ -157,3 +157,4 @@ conda env update --file env.yml --name venv --prune
 협업일지: 노션 - https://www.notion.so/2337b711d2ba808ea7e9df2f7dbe19a1?source=copy_link
 
 결과보고서: 구글독스 - https://docs.google.com/document/d/1WCKceTCVSP8zsMNgPon_UZc9KL3-VRMwQ8tyBENIKg0/edit?usp=sharing
+또는 root 위치
