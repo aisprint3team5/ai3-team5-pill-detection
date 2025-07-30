@@ -148,3 +148,10 @@ conda activate venv
 ```
 conda env update --file env.yml --name venv --prune
 ```
+
+---
+
+# 5팀
+협업툴: 노션 - https://www.notion.so/2337b711d2ba80948612d84f41e5c3a1?source=copy_link
+
+협업일지: 노션 - https://www.notion.so/2337b711d2ba808ea7e9df2f7dbe19a1?source=copy_link
