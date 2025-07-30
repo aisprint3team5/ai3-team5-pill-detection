@@ -119,6 +119,11 @@ usage: yolo11.py [-h] [--weights WEIGHTS] [--data DATA] [--epochs EPOCHS] [--bat
 3 0.678 0.441 0.120 0.240   # 클래스 3, 중심(0.678,0.441), 크기(0.120×0.240)
 ```
 
+## Yolo11 최고점수 모델 실행 방법
+```
+!python models/yolo11/main.py --name exp  --lr0 0.003 --lrf 0.01 --epochs 50 --batch 32 --weights yolo11s.pt --warmup_epochs=8 --patience 100 --transfer_learning --label_smoothing 0.1 --cos_lr --mixup 0.1 --degrees 0.0 --scale 0.5 --translate 0.1 --shear 0.0 
+```
+
 ## ⚙️ Conda 환경 설정
 ### How to export conda environment
 
