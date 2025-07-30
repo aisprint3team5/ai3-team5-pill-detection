@@ -20,11 +20,6 @@ train_labels_dir: data/yolo_split/train/labels
 val_images_dir: data/yolo_split/val/images
 val_labels_dir: data/yolo_split/val/labels
 test_images_dir: data/yolo_split/test/images
-# train_images_dir: data/yolo_split_short/train/images
-# train_labels_dir: data/yolo_split_short/train/labels
-# val_images_dir: data/yolo_split_short/val/images
-# val_labels_dir: data/yolo_split_short/val/labels
-# test_images_dir: data/yolo_split_short/test/images
 
 # 기타
 device: "auto"
