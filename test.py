@@ -1,165 +1,197 @@
-#Library
 import os
-import random
-import shutil
-import yaml
-from pathlib import Path
-
 import torch
-from torchvision import transforms
 
-import Utils.common
-# Custom modules
-from Utils.Datasets.Dataset import PillYoloDataset
-from Utils.Datasets.dataloader import *
-from Utils.preprocessing import *
-from Utils.common import split_yolo_dataset
-from Utils.Datasets.dataset_parser import PillDatasetParser
-from Utils.Datasets.transformer import PillImageTransform
+from utils.Dataset.Dataset import PillYoloDataset
+#from utils.Dataset.transformer import PillImageTransform
+from script.db.database import create_db
+from utils.Dataset import dataset_parser
+from utils.Dataset.dataloader import *
 from config.config import CONFIG
+from utils.common import *
+import random
+import yaml
+import pandas as pd
+
+import albumentations as A
+import cv2
+import json
+import os
+from tqdm import tqdm
+import uuid
+import copy
+import argparse
 
 
-
-# Constants & Paths
-
-ROOT_DIR = Path(__file__).resolve().parent
+DB_PATH = ROOT_DIR / "script/db/pill_metadata.db"
 
 # Config paths
-CONFIG_INPUT_IMAGE_DIR = CONFIG["paths"]["input_image_dir"]
-CONFIG_INPUT_LABEL_DIR = CONFIG["paths"]["input_label_dir"]
-CONFIG_OUTPUT_DIR      = CONFIG["paths"]["output_dir"]
+
 CONFIG_TRAIN           = CONFIG["paths"]["yolo_train_dir"]
 CONFIG_TRAIN_LABEL     = CONFIG["paths"]["yolo_train_label"]
 CONFIG_VAL             = CONFIG["paths"]["yolo_val_dir"]
 CONFIG_VAL_LABEL       = CONFIG["paths"]["yolo_val_label"]
+CONFIG_ORIGINAL_DATASET = CONFIG["paths"]["original_dataset"]
+CONFIG_TRAIN_IMAGE_DIR = CONFIG["paths"]["train_image_dir"]
+CONFIG_TRAIN_ANNO_DIR = CONFIG["paths"]["train_annot_dir"]
+#CONFIG_TRAIN_LABEL_DIR = CONFIG["paths"]["train_label_dir"]
+CONFIG_SPLIT_DATA_DIR   = CONFIG["paths"]["yolo_data_dir"]
+CONFIG_DATA_YAML_PATH = CONFIG["paths"]["data_yaml_path"]
+CONFIG_DB_PATH = CONFIG["paths"]["db_path"]
+CONFIG_CACHE_DIR = CONFIG["paths"]["pickle_path"]
+CONFIG_CLASS_FILE = CONFIG["paths"]["class_names_path"]
+#Test
+CONFIG_MISSING_ANOT_DIR = CONFIG["paths"]["missing_anot_dir"]
+CONFIG_TRAIN_NEW_LABEL = CONFIG["paths"]["yolo_train_new_label"]
 
-# Static paths
-INPUT_IMAGE_DIR = ROOT_DIR / "YOLO_dataset/images"
-INPUT_LABEL_DIR = ROOT_DIR / "YOLO_dataset/labels"
-CLASS_FILE      = ROOT_DIR / "YOLO_dataset/class_names.txt"
-TRAIN_IMAGE_DIR = ROOT_DIR / "data/raw/train_images"
-TRAIN_ANN_DIR   = ROOT_DIR / "data/raw/train_annotations"
-OUTPUT_IMG_DIR  = ROOT_DIR / "output/contour_detection"
-OUTPUT_DIR      = ROOT_DIR / "output"
-CONFIG_DIR      = ROOT_DIR / "config"
-PICKLE_PATH     = ROOT_DIR / "cache/parsed_dataset.pkl"
-DB_PATH = ROOT_DIR / "script/db/pill_metadata.db"
+CONFIG_INPUT_IMAGE_DIR = CONFIG["paths"]["yolo_all_dir"]
+CONFIG_INPUT_LABEL_DIR = CONFIG["paths"]["yolo_all_label"]
+CONFIG_OUTPUT_DIR = CONFIG["paths"]["yolo_train_new_label"]
 
 VAL_SPLIT = 0.1
-# Load and explore
-#download_data()
 
-dataset = convert_to_json(DB_PATH)
+# if not is_data_downloaded(CONFIG_ORIGINAL_DATASET):
+#     print("Data is not downloaded. Downloading...")
+#download_data(CONFIG_ORIGINAL_DATASET)
+# else:
+#     print("Data is already downloaded.")
 
-#
-# #
-# # # Step 1 : Parse json file
-parser = PillDatasetParser(TRAIN_IMAGE_DIR, TRAIN_ANN_DIR)
-if os.path.exists(PICKLE_PATH):
-    dataset = parser.load_from_pickle(PICKLE_PATH)
-else:
-    # Parse and save
-    dataset = parser.parse()
-    parser.save_to_pickle(PICKLE_PATH)
-# #
-# # #print(dataset[0])
-# #
-# # # Step 2 :
-# #
-# # # 1. 클래스 이름 추출 (dataset 구조 기반)
-all_class_names = set()
-for data in dataset:
-    for cat in data["categories"]:
-        all_class_names.add(cat["category_name"])
-class_names = sorted(list(all_class_names))
-class_to_idx = {name: idx for idx, name in enumerate(class_names)}
-# #
-# # # 2. 디렉토리 생성
-for split in ["train", "val"]:
-    for t in ["images", "labels"]:
-        os.makedirs(os.path.join(CONFIG_OUTPUT_DIR, split, t), exist_ok=True)
+def main():
 
-os.makedirs(CONFIG_DIR, exist_ok=True)
-# #
-# # # split dataset
-random.shuffle(dataset)
-val_size = int(len(dataset) * VAL_SPLIT)
-val_data = dataset[:val_size]
-train_data = dataset[val_size:]
-# #
-#
-convert_to_yolo(train_data, TRAIN_IMAGE_DIR, CONFIG_TRAIN, CONFIG_TRAIN_LABEL)
-convert_to_yolo(val_data, TRAIN_IMAGE_DIR, CONFIG_VAL, CONFIG_VAL_LABEL)
-# # #
-# # # # 실제 파일 이동
-split_yolo_dataset( CONFIG_INPUT_IMAGE_DIR,
-            CONFIG_INPUT_LABEL_DIR,
-            CONFIG_OUTPUT_DIR)
-# #
-data_yaml = {
-    "yolo_train_dir": str(CONFIG_OUTPUT_DIR / "train" / "images"),
-    "yolo_train_label": str(CONFIG_OUTPUT_DIR / "train" / "labels"),
-    "yolo_val_dir": str(CONFIG_OUTPUT_DIR / "val" / "images"),
-    "yolo_val_label": str(CONFIG_OUTPUT_DIR / "val" / "labels"),
-    "nc": len(class_names),
-    "names": class_names
-}
-#
-with open(CONFIG_DIR / "data.yaml", "w") as f:
-    yaml.dump(data_yaml, f, allow_unicode=True)
-#
-# # print(f"YOLO 데이터셋 생성 완료\n 클래스 수: {len(class_names)}")
-#
-class_name_to_idx, _ = Utils.common.load_class_mapping(CLASS_FILE)
-#
-# # Define transformation
-transform = PillImageTransform(resize=(640, 640))
-#
-# # Load train and val datasets
-train_dataset = PillYoloDataset(
-    image_dir=CONFIG_TRAIN,
-    label_dir=CONFIG_TRAIN_LABEL,
-    class_to_idx=class_name_to_idx,
-    S=7, B=2, C=len(class_name_to_idx),
-    transform=transform
-)
-val_dataset = PillYoloDataset(
-    image_dir=CONFIG_VAL,
-    label_dir=CONFIG_VAL_LABEL,
-    class_to_idx=class_name_to_idx,
-    transform=transform
-)
+    parser = argparse.ArgumentParser(description="YOLO Training Utility")
+
+    parser.add_argument('--augment', action='store_true', help="Run data augmentation pipeline")
+    parser.add_argument('--consistency', action='store_true', help="Run annotation consistency check")
+
+    parser.add_argument('--annotation', action='store_true', help="Run merge new annotation into folder")
+    args = parser.parse_args()
+
+    create_db(CONFIG_DB_PATH)
+    print("Running test script...")
+    dataset = convert_to_json(CONFIG_DB_PATH)
 
 
+    # Parse json file
+    parser = dataset_parser.PillDatasetParser(CONFIG_TRAIN_IMAGE_DIR, CONFIG_TRAIN_ANNO_DIR)
+    if os.path.exists(CONFIG_CACHE_DIR):
+        dataset = parser.load_from_pickle(CONFIG_CACHE_DIR)
+    else:
+        # Parse and save
+        dataset = parser.parse()
+        parser.save_to_pickle(CONFIG_CACHE_DIR)
 
 
-# class_txt_path = "YOLO_dataset/class_names.txt"
-# existed_label_dir = "existed_label"
-# new_label_dir = "data/new_anno"
-# output_label_dir = "output_label"
+    all_class_names = set()
+    for data in dataset:
+        for cat in data["categories"]:
+            all_class_names.add(cat["category_name"])
+    class_names = sorted(list(all_class_names))
+    class_to_idx = {name: idx for idx, name in enumerate(class_names)}
+
+    # #  디렉토리 생성
+    for split in ["train", "val"]:
+        for t in ["images", "labels"]:
+            os.makedirs(os.path.join(CONFIG_SPLIT_DATA_DIR, split, t), exist_ok=True)
+
+    # # # split dataset
+    random.shuffle(dataset)
+    val_size = int(len(dataset) * VAL_SPLIT)
+    val_data = dataset[:val_size]
+    train_data = dataset[val_size:]
+    #convert_to_yolo(dataset, class_to_idx, CONFIG_TRAIN_IMAGE_DIR, CONFIG_INPUT_IMAGE_DIR, CONFIG_INPUT_LABEL_DIR)
+    convert_to_yolo(train_data, class_to_idx, CONFIG_TRAIN_IMAGE_DIR, CONFIG_TRAIN, CONFIG_TRAIN_LABEL)
+    convert_to_yolo(val_data,class_to_idx, CONFIG_TRAIN_IMAGE_DIR, CONFIG_VAL, CONFIG_VAL_LABEL)
+    
+    
+    if hasattr(args, "annotation") and args.annotation:
+        merge_into_folder(CONFIG_TRAIN_LABEL, CONFIG_OUTPUT_DIR)
+
+    if hasattr(args, "consistency") and args.consistency:
+        print("Checking annotation consistency...")
+        check_image_label_consistency(
+            CONFIG_TRAIN_IMAGE_DIR,
+            CONFIG_TRAIN_ANNO_DIR,
+            CONFIG_CLASS_FILE,
+            CONFIG_MISSING_ANOT_DIR
+        )
+    if hasattr(args, "augment") and args.augment:
+        print("Running augmentation...")
+        # Augment train and val datasets
+        augment_dataset(
+        image_dir=CONFIG_TRAIN_IMAGE_DIR,
+        label_dir=CONFIG_TRAIN_LABEL,
+        output_image_dir='data/yolo_split/train_aug/images',
+        output_label_dir='data/yolo_split/train_aug/labels',
+        class_map_path='class_map.json',
+        augmentations_per_image=2,
+        rare_boost_factor=4  # Images with rare classes get more augmentations
+        )
+
+        folder_pairs = [(CONFIG_TRAIN_IMAGE_DIR, "data/yolo_split/train_aug/images"), (CONFIG_TRAIN_LABEL, "data/yolo_split/train_aug/labels")]
+        swap_folders(folder_pairs)
+
+    data_yaml = {
+        "yolo_train_dir": CONFIG_TRAIN,
+        "yolo_train_label": CONFIG_TRAIN_LABEL,
+        "yolo_val_dir": CONFIG_VAL,
+        "yolo_val_label": CONFIG_VAL_LABEL,
+        "train": CONFIG_TRAIN,
+        "val": CONFIG_VAL,
+        "path": CONFIG_SPLIT_DATA_DIR,
+        "nc": len(class_names),
+        "names": class_names
+    }
+    #Save data.yaml
+    with open(CONFIG_DATA_YAML_PATH, "w") as f:
+        yaml.dump(data_yaml, f, allow_unicode=True)
+    class_name_to_idx, _ = load_class_mapping(CONFIG_CLASS_FILE)
 
 
-#class_name_to_idx, _ = Utils.common.load_class_mapping(class_txt_path)
+    print("Finished test script...")
 
-# === Run ===
-# Utils.common.merge_labels_with_db(
-#     CONFIG_TRAIN_LABEL,
-#     new_label_dir,
-#     output_label_dir,
-#     class_name_to_idx,
-#     DB_PATH
+
+def merge_yolo_annotations(folder_a, folder_b, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Get all .txt files from folder_a
+    txt_files_a = [f for f in os.listdir(folder_a) if f.endswith(".txt")]
+    merged_count = 0
+    skipped_count = 0
+
+    for file_name in txt_files_a:
+        path_a = os.path.join(folder_a, file_name)
+        path_b = os.path.join(folder_b, file_name)
+
+        # Only merge if the same file exists in both folders
+        if os.path.exists(path_b):
+            with open(path_a, "r") as fa:
+                lines_a = fa.read().strip().splitlines()
+
+            with open(path_b, "r") as fb:
+                lines_b = fb.read().strip().splitlines()
+
+            # Combine both sets of labels
+            merged_lines = lines_a + lines_b
+
+            # Write merged result to output_dir
+            output_path = os.path.join(output_dir, file_name)
+            with open(output_path, "w") as fout:
+                fout.write("\n".join(merged_lines) + "\n")
+
+            print(f"Merged: {file_name}")
+            merged_count += 1
+        else:
+            #print(f"Skipped (no match in folder_b): {file_name}")
+            skipped_count += 1
+    print(f" Merged {merged_count} files")
+    print(f"Skipped {skipped_count} files")
+# merge_yolo_annotations(
+#     folder_a="data/yolo_split/all/labels",
+#     folder_b="data/updated_labels_4",
+#     output_dir="data/yolo_split/all/new_labels"  # Optional. If not given, it overwrites in folder_a
 # )
-#json_files = get_all_annotation_files(TRAIN_ANN_DIR)
-#print(f"총 {len(json_files)}개의 annotation 파일을 찾았습니다.")
-#df_annotations = analyze_pill_annotations(json_files)
 
 
-#class_counts = plot_class_distribution(data, top_n=30)
-#analyze_image_sizes(data)
-#metadata_and_annotation_analysis(data)
+if __name__ == "__main__":
+    main()
 
-# detect_missing_pills(
-#     dataset=data,
-#     train_img_dir=TRAIN_IMG_DIR,
-#     output_dir=OUTPUT_IMG_DIR
-# )
+

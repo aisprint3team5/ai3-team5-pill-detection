@@ -73,7 +73,10 @@ names:
 - 펠루비정(펠루비프로펜)
 - 플라빅스정 75mg
 nc: 73
+path: data/yolo_split
+train: data/yolo_split/train/images
+val: data/yolo_split/val/images
 yolo_train_dir: data/yolo_split/train/images
 yolo_train_label: data/yolo_split/train/labels
 yolo_val_dir: data/yolo_split/val/images
-yolo_val_label: data/yolo_split/train/labels
+yolo_val_label: data/yolo_split/val/labels
