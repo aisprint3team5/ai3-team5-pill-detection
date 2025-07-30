@@ -26,6 +26,8 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'batch size'},
     {'flags': ['--imgsz'],         'type': int,   'default': DEFAULTS['imgsz'],
                                      'help': 'input image size (HxW)'},
+    {'flags': ['--transfer_learning'], 'action': 'store_true', 'default': DEFAULTS['transfer_learning'],
+                                     'help': 'enable transfer learning'},
     {'flags': ['--optimizer'],     'type': str,   'choices': ['SGD','Adam','AdamW'],
                                      'default': DEFAULTS['optimizer'],
                                      'help': 'optimizer type'},
@@ -70,28 +72,28 @@ def build_parser():
     return parser
 
 
-
-
-
 def train_yolo11(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = YOLO(args.weights)
 
-    for idx, module in enumerate(model.model.model):
-        # 백본에 해당하는 0~10번 레이어만 requires_grad=False
-        if idx <= 10:
-            for p in module.parameters():
-                p.requires_grad = False
-        else:
-            for p in module.parameters():
-                p.requires_grad = True
+    print('tf: ', args.transfer_learning)
 
     # optimizer별 옵션 분기
     opt_kwargs = {'lr0': args.lr0, 'lrf': args.lrf, 'weight_decay': args.weight_decay}
     if args.optimizer.lower() == 'sgd':
         opt_kwargs['momentum'] = args.momentum
 
-    model.train(
+    if args.transfer_learning:
+        for idx, module in enumerate(model.model.model):
+            # 백본에 해당하는 0~10번 레이어만 requires_grad=False
+            if idx <= 10:
+                for p in module.parameters():
+                    p.requires_grad = False
+            else:
+                for p in module.parameters():
+                    p.requires_grad = True
+
+    results = model.train(
         data=args.data,
         epochs=args.epochs,
         batch=args.batch,
@@ -105,6 +107,9 @@ def train_yolo11(args):
         name=args.name,
         **opt_kwargs
     )
+
+    if not args.transfer_learning:
+        return results
 
     # Unfreeze
     for idx, module in enumerate(model.model.model):
