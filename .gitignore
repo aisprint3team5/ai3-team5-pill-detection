@@ -30,7 +30,7 @@ YOLO_dataset/labels/
 *.h5
 
 # 로그
-!outputs/logs/.gitkeep
+!outputs
 *.log
 
 # Jupyter 노트북 체크포인트
