@@ -8,6 +8,7 @@ from ultralytics import YOLO
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 
+
 # ─── 1) 외부 YAML 읽어 DEFAULTS 생성 ────────────────────────────
 with open("config/yolo_11.yaml", "r", encoding="utf-8") as f:
     DEFAULTS = yaml.safe_load(f)
@@ -25,6 +26,8 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'batch size'},
     {'flags': ['--imgsz'],         'type': int,   'default': DEFAULTS['imgsz'],
                                      'help': 'input image size (HxW)'},
+    {'flags': ['--transfer_learning'], 'action': 'store_true', 'default': DEFAULTS['transfer_learning'],
+                                     'help': 'enable transfer learning'},
     {'flags': ['--optimizer'],     'type': str,   'choices': ['SGD','Adam','AdamW'],
                                      'default': DEFAULTS['optimizer'],
                                      'help': 'optimizer type'},
@@ -34,13 +37,12 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'final LR ratio (cosine scheduler)'},
     {'flags': ['--momentum'],      'type': float, 'default': DEFAULTS['momentum'],
                                      'help': 'SGD momentum (only if optimizer=SGD)'},
-    {'flags': ['--betas'],         'type': lambda s: tuple(map(float, s.split(','))),
-                                     'default': tuple(DEFAULTS['betas']),
-                                     'help': 'Adam/AdamW betas as "beta1,beta2"'},
     {'flags': ['--weight_decay'],  'type': float, 'default': DEFAULTS['weight_decay'],
                                      'help': 'weight decay (L2)'},
     {'flags': ['--warmup_epochs'], 'type': int,   'default': DEFAULTS['warmup_epochs'],
                                      'help': 'number of warmup epochs'},
+    {'flags': ['--patience'], 'type': int,   'default': DEFAULTS['patience'],
+                                     'help': 'patience'},
 ]
 
 
@@ -74,14 +76,24 @@ def train_yolo11(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = YOLO(args.weights)
 
+    print('transfer learning: ', args.transfer_learning)
+
     # optimizer별 옵션 분기
     opt_kwargs = {'lr0': args.lr0, 'lrf': args.lrf, 'weight_decay': args.weight_decay}
     if args.optimizer.lower() == 'sgd':
         opt_kwargs['momentum'] = args.momentum
-    else:
-        opt_kwargs['betas'] = args.betas
 
-    return model.train(
+    if args.transfer_learning:
+        for idx, module in enumerate(model.model.model):
+            # 백본에 해당하는 0~10번 레이어만 requires_grad=False
+            if idx <= 10:
+                for p in module.parameters():
+                    p.requires_grad = False
+            else:
+                for p in module.parameters():
+                    p.requires_grad = True
+
+    results = model.train(
         data=args.data,
         epochs=args.epochs,
         batch=args.batch,
@@ -89,6 +101,33 @@ def train_yolo11(args):
         optimizer=args.optimizer,
         device=device,
         warmup_epochs=args.warmup_epochs,
+        patience=args.patience,
+        augment=args.augment,
+        project=args.project,
+        name=args.name,
+        **opt_kwargs
+    )
+
+    if not args.transfer_learning:
+        return results
+
+    # Unfreeze
+    for idx, module in enumerate(model.model.model):
+        for p in module.parameters():
+            p.requires_grad = True
+
+    opt_kwargs['lr0'] = args.lr0 * args.lrf
+    opt_kwargs['lrf'] = 0.1
+
+    return model.train(
+        data=args.data,
+        epochs=20,
+        batch=args.batch,
+        imgsz=args.imgsz,
+        optimizer=args.optimizer,
+        device=device,
+        warmup_epochs=0,
+        patience=args.patience,
         augment=args.augment,
         project=args.project,
         name=args.name,
