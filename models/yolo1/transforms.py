@@ -6,6 +6,7 @@ import albumentations as A
 from PIL import Image
 from torchvision.transforms import ToTensor
 from albumentations.pytorch import ToTensorV2
+import torchvision.transforms as T
 
 
 def preprocess_pill_image(img: np.ndarray) -> np.ndarray:
@@ -45,9 +46,10 @@ class PillImageTransform:
 class AlbumentationTransform:
     def __init__(self, resize=(640, 640)):
         h, w = resize
+        self.pil_resizer = T.Resize(resize)
         self.transform = A.Compose(
             [
-                A.Resize(height=h, width=w),  # 이미지 + 박스 동시 리사이즈
+                #A.Resize(height=h, width=w),  # 이미지 + 박스 동시 리사이즈
                 A.RandomBrightnessContrast(p=0.3),
                 A.HorizontalFlip(p=0.5),
                 A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.1, rotate_limit=15, p=0.5),
@@ -69,9 +71,10 @@ class AlbumentationTransform:
         Returns:
             transformed image tensor, transformed boxes tensor
         """
-        # Convert PIL to np.ndarray if needed
-        if not isinstance(image, np.ndarray):
-            image = np.array(image)
+        if not isinstance(image, Image.Image):
+            image = Image.fromarray(image)
+        image = self.pil_resizer(image)
+        image = np.array(image)
         transformed = self.transform(image=image, bboxes=boxes, class_labels=labels)
 
         bboxes = transformed['bboxes']
