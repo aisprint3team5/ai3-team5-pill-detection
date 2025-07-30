@@ -43,6 +43,20 @@ ARGUMENTS: list[dict[str, object]] = [
                                      'help': 'number of warmup epochs'},
     {'flags': ['--patience'], 'type': int,   'default': DEFAULTS['patience'],
                                      'help': 'patience'},
+    {'flags': ['--label_smoothing'], 'type': float, 'default': 0.0,
+                                     'help': 'Label smoothing (0.0 to disable)'},
+    {'flags': ['--cos_lr'],          'action': 'store_true', 'default': False,
+                                     'help': 'Use cosine learning rate scheduler'},
+    {'flags': ['--mixup'],           'type': float, 'default': 0.0,
+                                     'help': 'MixUp augmentation probability'},
+    {'flags': ['--degrees'],         'type': float, 'default': 0.0,
+                                     'help': 'Image rotation degrees (±)'},
+    {'flags': ['--scale'],           'type': float, 'default': 0.5,
+                                     'help': 'Image scale range'},
+    {'flags': ['--translate'],       'type': float, 'default': 0.1,
+                                     'help': 'Image translation fraction'},
+    {'flags': ['--shear'],           'type': float, 'default': 0.0,
+                                     'help': 'Image shear range'},
 ]
 
 

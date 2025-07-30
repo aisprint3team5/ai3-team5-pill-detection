@@ -28,3 +28,12 @@ weight_decay:  0.0005
 augment:       true      # or false
 project:       "outputs/logs/yolo11"
 name:          "exp"
+
+# 추가
+label_smoothing: 0.0
+cos_lr: false
+mixup: 0.0
+degrees: 0.0
+scale: 0.5
+translate: 0.1
+shear: 0.0
